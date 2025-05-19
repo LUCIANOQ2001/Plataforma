@@ -1,17 +1,6 @@
 # Plataforma
 Proyecto de realizar un nuevo diseño para el salón virtual del CIP
 
-el .htaccess es:
-Options All -Indexes
-
-RewriteEngine On
-
-# No reescribir si apunta a un fichero o directorio real
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-
-# Captura letras, números y guiones, con o sin barra final
-RewriteRule ^([A-Za-z0-9-]+)/?$ index.php?views=$1 [L,QSA]
 
 
 El día de hoy 19 de Mayo del 2025 se realizó las siguientes modificaciones:
