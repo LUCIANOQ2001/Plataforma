@@ -1,0 +1,973 @@
+/*========= Importando hojas de estilo =========*/
+/* Bootstrap 3.3.7 */
+@import url('./bootstrap.min.css');
+/* Material desing for Bootstrap */
+@import url('./bootstrap-material-design.min.css');
+@import url('./ripples.min.css');
+/* Sweet Alert 2 */
+@import url('./sweetalert2.css');
+/* Material Design Iconic Font 2.2.0 */
+@import url('./material-design-iconic-font.min.css');
+/* trumbowyg */
+@import url('./trumbowyg.min.css');
+/*============ Fonts */
+@font-face {
+    font-family: 'RobotoCondensedLight';
+    src: url('../fonts/robotocondensed-light.eot');
+    src: url('../fonts/robotocondensed-light.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/robotocondensed-light.woff2') format('woff2'),
+         url('../fonts/robotocondensed-light.woff') format('woff'),
+         url('../fonts/robotocondensed-light.ttf') format('truetype'),
+         url('../fonts/robotocondensed-light.svg#roboto_condensedlight') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+@font-face {
+    font-family: 'RobotoCondensed';
+    src: url('../fonts/robotocondensed-regular.eot');
+    src: url('../fonts/robotocondensed-regular.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/robotocondensed-regular.woff2') format('woff2'),
+         url('../fonts/robotocondensed-regular.woff') format('woff'),
+         url('../fonts/robotocondensed-regular.ttf') format('truetype'),
+         url('../fonts/robotocondensed-regular.svg#roboto_condensedregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+/*============ Estilos generales*/
+body, html{
+	background-color: #fff;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	font-size: 16px;
+	font-family: 'RobotoCondensed';
+	overflow: hidden;
+}
+.full-box{
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	box-sizing: border-box;
+}
+.cover{
+	background: 50% 50% no-repeat;
+	background-size: cover;
+}
+.text-titles{
+	font-family: 'RobotoCondensedLight'
+}
+/* Contenedor Principal */
+/* Contenedor Principal con Fondo */
+.containerLogin {
+    height: 100vh;
+    background: url(../assets/img/index1.jpg) no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilos del formulario con efecto vidrio y animación */
+.logInForm {
+    position: relative;
+    width: 90%;
+    max-width: 350px;
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: fadeIn 0.8s ease-in-out, float 4s infinite ease-in-out;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animación flotante */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(10px); }
+    100% { transform: translateY(0px); }
+}
+
+/* Texto en negrita y centrado */
+.company-name {
+    font-size: 22px;
+    font-weight: bold;
+    color: #09f357; 
+    text-align: center;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+}
+
+/* Labels centrados y en negrita */
+.logInForm label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #222; 
+    text-align: center;
+    display: block;
+}
+
+/* Inputs con bordes iluminados */
+.input-field {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid rgba(104, 54, 54, 0.6);
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.25);
+    color: #222;
+    text-align: center;
+}
+
+/* Botón moderno con profundidad */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease, transform 0.3s ease;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #f57c00, #e65100);
+    transform: scale(1.05);
+}
+
+/* Responsividad con Media Queries */
+@media (max-width: 768px) {
+    .logInForm {
+        width: 85%;
+        max-width: 300px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logInForm {
+        width: 95%;
+        max-width: 280px;
+        padding: 18px;
+    }
+}
+
+/* --- Desplaza el contenido para no pisar el sidebar --- */
+.content-wrapper {
+  margin-left: 270px;   /* ancho del sidebar */
+  margin-right: 20px;   /* un pequeño margen a la derecha */
+  padding-top: 20px 0;    /* opcional: separación arriba */
+}
+
+/* Permite scroll vertical normal */
+html, body {
+  overflow: auto;
+}
+
+
+
+
+
+
+
+
+/* Contenedor principal */
+/* Contenedor principal */
+.dashboard-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+    overflow-y: auto; /* Permite desplazamiento */
+    max-height: 100vh; /* Ajusta al tamaño de la pantalla */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Encabezado centrado */
+.dashboard-header {
+    text-align: center;
+    padding: 15px;
+    
+    color: rgb(228, 15, 15);
+    font-size: 22px;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px rgba(180, 69, 69, 0.3);
+}
+
+/* Contenido alineado */
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+/* Imagen en tarjeta */
+.dashboard-card {
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.dashboard-img {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Panel de Cursos con efecto 3D */
+.dashboard-panel {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.2), 
+                -6px -6px 15px rgba(255, 255, 255, 0.6);
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Estilo de cada ítem */
+.panel-item {
+    text-align: center;
+    width: 220px;
+    padding: 15px;
+    background: linear-gradient(145deg, #ffffff, #dddddd);
+    border-radius: 10px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2),
+                -5px -5px 10px rgba(255, 255, 255, 0.5);
+    margin: 10px;
+    transition: all 0.3s ease-in-out;
+}
+
+.panel-item:hover {
+    box-shadow: inset 5px 5px 10px rgba(0, 0, 0, 0.2),
+                inset -5px -5px 10px rgba(255, 255, 255, 0.5);
+}
+
+.panel-item i {
+    font-size: 40px;
+    color: #007bff;
+}
+
+.panel-item span {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.panel-item strong {
+    font-size: 22px;
+    color: #333;
+}
+
+/* Sección de Clases en Vivo */
+.live-classes {
+    text-align: center;
+    margin-top: 30px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.live-classes h2 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #222;
+}
+
+/* Tarjetas animadas */
+.class-card {
+    background: linear-gradient(145deg, #ffffff, #cccccc);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.2),
+                -6px -6px 15px rgba(255, 255, 255, 0.5);
+    margin: 15px auto;
+    max-width: 400px;
+    text-align: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.class-card:hover {
+    transform: scale(1.05);
+}
+
+.class-card h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.class-card p {
+    font-size: 16px;
+    color: #444;
+}
+
+/* Botón con efecto neumórfico */
+.join-class {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.join-class:hover {
+    background: linear-gradient(135deg, #0056b3, #003d80);
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .dashboard-panel {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .class-card {
+        max-width: 90%;
+    }
+}
+
+
+
+
+
+/*============ Partes del dashboard*/
+/* Sidebar */
+.dashboard-sideBar {
+    position: fixed;
+    width: 270px;
+    height: 100vh;
+    background: #1e1e2f;
+    color: rgb(219, 109, 13);
+    box-shadow: 4px 0px 10px rgba(173, 90, 90, 0.5);
+    overflow-y: auto;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Título */
+.dashboard-sideBar-title {
+    font-size: 22px;
+    font-weight: bold;
+    padding: 20px;
+   
+    text-align: center;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Usuario */
+.dashboard-sideBar-UserInfo {
+    text-align: center;
+    padding: 15px;
+    border-top: 1px solid rgba(255, 255, 255, .3);
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+}
+
+.dashboard-sideBar-UserInfo img {
+    width: 100px;
+    border-radius: 50%;
+    box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+}
+
+/* Menú */
+.dashboard-sideBar-Menu {
+    list-style: none;
+    padding: 0;
+}
+
+.dashboard-sideBar-Menu li {
+    width: 100%;
+}
+
+.dashboard-sideBar-Menu a {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background 0.3s ease-in-out;
+    border-radius: 8px;
+}
+
+.dashboard-sideBar-Menu a:hover {
+    background: rgba(62, 234, 4, 0.15);
+}
+
+/* Submenú oculto */
+.submenu {
+    display: none;
+    padding-left: 20px;
+    transition: max-height 0.3s ease-in-out;
+}
+
+
+
+/*============ Estilos home*/
+/* Encabezado centrado */
+.welcome-header {
+    text-align: center;
+    padding: 20px;
+ 
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Contenedor de tarjetas con ajuste flexible */
+.welcome-content {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    flex-wrap: wrap;
+    text-align: center;
+    margin: 20px auto;
+    padding: 20px;
+    gap: 20px;
+    border-radius: 10px;
+    max-width: 900px;
+    padding-left: 280px; /* Espacio extra para evitar superposición con el sidebar */
+}
+
+/* Diseño de las tarjetas */
+.welcome-card {
+    flex: 1;
+    min-height: 250px;
+    min-width: 300px;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 15px;
+    background: linear-gradient(145deg, #ffffff, #dddddd);
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2), 
+                -4px -4px 12px rgba(255, 255, 255, 0.6);
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Hover más suave */
+.welcome-card:hover {
+    box-shadow: inset 4px 4px 12px rgba(0, 0, 0, 0.2), 
+                inset -4px -4px 12px rgba(255, 255, 255, 0.6);
+    transform: scale(1.02);
+}
+
+/* Subtítulos */
+.welcome-subtitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Texto */
+.welcome-text {
+    font-size: 18px;
+    font-weight: 500;
+    color: #b62626;
+}
+
+/* Links con efecto */
+.welcome-link {
+    color: #007bff;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.welcome-link:hover {
+    color: #ff9800;
+    transform: scale(1.05);
+}
+
+/* Responsividad mejorada */
+@media (max-width: 768px) {
+    .welcome-content {
+        flex-direction: column;
+        align-items: center;
+        padding-left: 0; /* Eliminamos el margen para pantallas pequeñas */
+    }
+
+    .welcome-card {
+        width: 90%;
+        max-width: 350px;
+        min-height: 220px;
+    }
+}
+/* Fondo formal */
+body {
+    background-color: #2d2d3f; 
+    color: white;
+    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Corrección en slider-wrapper */
+.slider-wrapper-vertical {
+  width: 90%;
+  max-width: 600px;
+  height: 350px;              /* Ajusta la altura a tu gusto */
+  margin: 30px auto;          /* Centrado horizontal y margen superior */
+  position: relative;
+  overflow: hidden;
+}
+
+/* Contenedor interno que agrupa los slides */
+.slider-container-vertical {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Cada slide ocupa todo el contenedor, partiendo desplazado abajo */
+.slide-vert {
+  position: absolute;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+/* Slide visible */
+.slide-vert.active-vert {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Botones “arriba” y “abajo” */
+.slider-btn-vert {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.prev-vert { top: 10px; }
+.next-vert { bottom: 10px; }
+
+/* Títulos y texto dentro de cada slide */
+.classroom-title {
+  margin-bottom: 10px;
+  color: #fff;
+  font-size: 1.5em;
+}
+
+.classroom-text {
+  color: #eee;
+  margin-bottom: 15px;
+  font-size: 1.1em;
+}
+
+/* Estilos para el contenido de pizarra */
+.board-content {
+  background: rgba(0,0,0,0.2);
+  padding: 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 1em;
+}
+
+/* Lista de estudiantes */
+.student-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #fff;
+  font-size: 1em;
+}
+
+.student-list li {
+  margin-bottom: 5px;
+}
+
+/* Enlaces/buttons dentro de slides */
+.class-download,
+.class-join {
+  display: inline-block;
+  margin-top: 10px;
+  color: #fff;
+  background: rgba(0,0,0,0.3);
+  padding: 8px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.class-download:hover,
+.class-join:hover {
+  background: rgba(0,0,0,0.5);
+}
+/* ===== SLIDER HORIZONTAL ===== */
+.slider-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 500px 4;        /* ajusta altura */
+  margin: 20px 0;       /* sólo margen arriba/abajo */
+}
+
+.slider-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform .5s ease;
+}
+
+.slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+}
+
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Flechas */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 2;
+}
+.slider-btn.prev { left: 10px; }
+.slider-btn.next { right: 10px; }
+
+/* Puntos */
+.slider-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.slider-dots .dot {
+  width: 10px; height: 10px;
+  background: #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.slider-dots .dot.active {
+  background: #333;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*TimeLine*/
+.cd-container {
+  width: 90%;
+  max-width: 1170px;
+  margin: 0 auto;
+}
+.cd-container::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+#cd-timeline {
+  position: relative;
+  padding: 2em 0;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+#cd-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  height: 100%;
+  width: 4px;
+  background: #d7e4ed;
+}
+.cd-timeline-block {
+  position: relative;
+  margin: 2em 0;
+}
+.cd-timeline-block::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.cd-timeline-block:first-child {
+  margin-top: 0;
+}
+.cd-timeline-block:last-child {
+  margin-bottom: 0;
+}
+.cd-timeline-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(0,0,0,.09);
+}
+.cd-timeline-img img {
+  display: block;
+  width: 40px;
+  height: 40px;
+  position: relative;
+  border-radius: 50%;
+}
+.cd-timeline-content {
+  position: relative;
+  margin-left: 60px;
+  border-radius: 0.25em;
+  padding: 1em;
+  background-color: #13db31;
+  color: #fff;
+}
+.cd-timeline-content::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.cd-timeline-content .cd-date {
+  display: inline-block;
+}
+.cd-timeline-content p {
+  margin: 1em 0;
+  line-height: 1.6;
+}
+.cd-timeline-content .cd-date {
+  float: left;
+  padding: .8em 0;
+}
+.cd-timeline-content::before {
+  content: '';
+  position: absolute;
+  top: 16px;
+  right: 100%;
+  height: 0;
+  width: 0;
+  border: 7px solid transparent;
+  border-right: 7px solid #01579B;
+}
+@media (min-width: 1200px) {
+    #cd-timeline {
+        margin-top: 3em;
+        margin-bottom: 3em;
+    }
+    #cd-timeline::before {
+        left: 50%;
+        margin-left: -2px;
+    }
+    .cd-timeline-block {
+        margin: 4em 0;
+    }
+    .cd-timeline-block:first-child {
+        margin-top: 0;
+    }
+    .cd-timeline-block:last-child {
+        margin-bottom: 0;
+    }
+    .cd-timeline-img {
+        width: 60px;
+        height: 60px;
+        left: 50%;
+        margin-left: -30px;
+        transform: translateZ(0);
+        backface-visibility: hidden;
+    }
+    .cd-timeline-img img{
+        width: 60px;
+        height: 60px;
+    }
+    .cd-timeline-content .cd-date {
+        color: #01579B;
+    }
+    .cd-timeline-content {
+        margin-left: 0;
+        width: 45%;
+    }
+  .cd-timeline-content::before {
+    top: 24px;
+    left: 100%;
+    border-color: transparent;
+    border-left-color: #01579B;
+  }
+  .cd-timeline-content .cd-date {
+    position: absolute;
+    width: 100%;
+    left: 122%;
+    top: 6px;
+    font-size: 16px;
+    font-size: 1rem;
+  }
+  .cd-timeline-block:nth-child(even) .cd-timeline-content {
+    float: right;
+  }
+  .cd-timeline-block:nth-child(even) .cd-timeline-content::before {
+    top: 24px;
+    left: auto;
+    right: 100%;
+    border-color: transparent;
+    border-right-color: #01579B;
+  }
+  .cd-timeline-block:nth-child(even) .cd-timeline-content .cd-date {
+    left: auto;
+    right: 122%;
+    text-align: right;
+  }
+}
+
+/*======= VIDEO RSPONSIVES*/
+.videoWrapper {
+	position: relative;
+	padding-bottom: 56.25%; /* 16:9 */
+	padding-top: 25px;
+	height: 0;
+	width: 90%;
+	display: block;
+	margin: 0 auto;
+}
+.videoWrapper iframe,
+.videoWrapper object,
+.videoWrapper embed {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+/*======= MEDIA QUERIES*/
+@media (max-width: 767px){
+	.dashboard-sideBar{
+		width: 100%;
+		z-index: 99;
+		background-image: none;
+		background-color: transparent;
+		border-right: none;
+		opacity: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+	.dashboard-sideBar-ct,
+	.dashboard-sideBar-bg{
+		position: absolute;
+		top: 0;
+		left: 0;
+	}
+	.dashboard-sideBar-ct{
+		border-right: 1px solid rgba(255, 255, 255, .3);
+		z-index: 3;
+		max-width: 270px;
+		width: 100%;
+		transition: all .3s ease-in-out;
+		transform: translateX(-270px);
+	}
+	.dashboard-sideBar-bg{
+		height: 100%;
+		background-color: rgba(0, 0, 0, .6);
+		z-index: 2;
+	}
+	.dashboard-contentPage{
+		padding-left: 0;
+	}
+	.show-sidebar{
+		pointer-events: auto !important;
+		opacity: 1 !important;
+	}
+	.show-sidebar > .dashboard-sideBar-ct{
+		transform: translateX(0) !important;
+	}
+}
+@media (min-width: 768px) and (max-width: 991px){
+	.hide-sidebar{
+		pointer-events: none;
+		opacity: 0;
+		border-right: none;
+		transform: translateX(-270px);
+	}
+	.no-paddin-left{
+		padding-left: 0;
+	}
+}
+@media (min-width: 992px) and (max-width: 1199px){
+	.hide-sidebar{
+		pointer-events: none;
+		opacity: 0;
+		border-right: none;
+		transform: translateX(-270px);
+	}
+	.no-paddin-left{
+		padding-left: 0;
+	}
+}
+@media (min-width: 1200px){
+	.hide-sidebar{
+		pointer-events: none;
+		opacity: 0;
+		border-right: none;
+		transform: translateX(-270px);
+	}
+	.no-paddin-left{
+		padding-left: 0;
+	}
+}

@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    padding: 20px;
+}
+
+.consulta-container {
+    max-width: 700px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    text-align: center;
+    color: #333;
+}
+
+.historial-consultas {
+    margin-top: 20px;
+}
+
+.consulta-item {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border-left: 4px solid #3498db;
+}
+
+.consulta-item p {
+    font-size: 16px;
+}
+
+.fecha {
+    font-size: 12px;
+    color: #777;
+    display: block;
+    margin-top: 5px;
+}
