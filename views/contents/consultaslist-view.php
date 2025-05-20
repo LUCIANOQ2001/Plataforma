@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['alert'] = $stmt->execute([
             ':estado' => clean_string($_POST['estado']),
             ':id'     => (int)$_POST['id']
-        ])
+        ])  
         ? '<div class="alert alert-success text-center">Estado actualizado.</div>'
         : '<div class="alert alert-danger text-center">Error al actualizar.</div>';
     }
@@ -71,33 +71,43 @@ $stmt->execute();
 $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- Estilos embebidos: ajusta ancho, alto y colores -->
+<!-- Estilos embebidos: ajusta ancho, alto y posición horizontal -->
 <style>
-.consultas-panel {
-    max-width: 900px; /* cambiar ancho máximo */
-    width: 95%;
-    margin: 20px auto;
-    padding: 0;
-}
-.consultas-heading {
-    background:rgb(21, 102, 184); /* color de encabezado */
-    color: #fff;
-    padding: 15px;
-}
-.table-responsive {
-    max-height: 400px; /* altura de scroll */
-    overflow-y: auto;
-    margin: 0;
-}
-.pagination {
-    display: inline-flex;
-    padding: 10px 0;
-    justify-content: center;
-    width: 100%;
-}
+    /* CONTENEDOR PRINCIPAL: ajusta `margin-left` para mover todo el contenido
+       hacia la derecha o izquierda según el ancho de tu sidebar */
+    .dashboard-contentPage {
+        margin-left: 170px;             /* <-- Cambia 270px al ancho de tu sidebar */
+        padding: 20px;                  /* Espacio interno */
+        width: calc(100% - 270px);      /* Mantiene el ancho sin pisar el sidebar */
+        box-sizing: border-box;
+        overflow: auto;                 /* Scroll interno si es necesario */
+    }
+
+    /* PANEL DE CONSULTAS */
+    .consultas-panel {
+        max-width: 950px; /* Cambia este valor para ajustar ancho del panel */
+        width: 100%;
+        margin: 30px auto;
+        padding: 0;
+    }
+    .consultas-heading {
+        background: rgb(16, 196, 121); /* Color de encabezado */
+        color: #fff;
+        padding: 5px 15px;
+    }
+    .table-responsive {
+        max-height: 400px; /* Ajusta altura de scroll */
+        overflow-y: auto;
+    }
+    .pagination {
+        display: inline-flex;
+        padding: 10px 0;
+        justify-content: center;
+        width: 100%;
+    }
 </style>
 
-<section class="full-box dashboard-contentPage content-wrapper">
+<section class="full-box dashboard-contentPage">
     <?php echo $alert; ?>
     <div class="dashboard-container">
         <!-- Listado de Consultas para docente -->
@@ -133,7 +143,9 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </select>
                             </td>
                             <td>
-                                <button class="btn btn-danger btn-xs" onclick="deleteConsulta(<?php echo $row['id']; ?>)">Eliminar</button>
+                                <button class="btn btn-danger btn-xs" onclick="deleteConsulta(<?php echo $row['id']; ?>)">
+                                    Eliminar
+                                </button>
                             </td>
                         </tr>
                         <?php endforeach; else: ?>
@@ -146,7 +158,9 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <nav aria-label="Page navigation">
                 <ul class="pagination">
                     <?php for($p=1; $p<=$totalPages; $p++): ?>
-                    <li<?php if($p==$page) echo ' class="active"'; ?>><a href="?page=<?php echo $p; ?>"><?php echo $p; ?></a></li>
+                    <li<?php if($p==$page) echo ' class="active"'; ?>>
+                        <a href="?page=<?php echo $p; ?>"><?php echo $p; ?></a>
+                    </li>
                     <?php endfor; ?>
                 </ul>
             </nav>
@@ -171,4 +185,3 @@ function updateStatus(id, estado) {
         .then(() => location.reload());
 }
 </script>
- 
