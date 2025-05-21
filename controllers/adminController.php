@@ -7,80 +7,90 @@
 
 	class adminController extends adminModel{
 
-		/*----------  Add Admin Controller  ----------*/
+		/*----------  Add Admin/Docente Controller  ----------*/
 		public function add_admin_controller(){
-			$name=self::clean_string($_POST['name']);
-			$lastname=self::clean_string($_POST['lastname']);
-			$gender=self::clean_string($_POST['gender']);
-			$username=self::clean_string($_POST['username']);
-			$password1=self::clean_string($_POST['password1']);
-			$password2=self::clean_string($_POST['password2']);
+			// 1) Limpiar entradas
+			$name      = self::clean_string($_POST['name']);
+			$lastname  = self::clean_string($_POST['lastname']);
+			$gender    = self::clean_string($_POST['gender']);
+			$username  = self::clean_string($_POST['username']);
+			$password1 = $_POST['password1'];
+			$password2 = $_POST['password2'];
+			$type      = self::clean_string($_POST['type'] ?? 'Administrador');
 
-			if($password1!="" || $password2!=""){
-				if($password1==$password2){
-					$query1=self::execute_single_query("SELECT Usuario FROM cuenta WHERE Usuario='$username'");
-					if($query1->rowCount()<=0){
+			// 2) Validar contraseñas
+			if(trim($password1) === '' || trim($password2) === ''){
+				return self::sweet_alert_single([
+					"title" => "Error",
+					"text"  => "Debes llenar ambos campos de contraseña",
+					"type"  => "error"
+				]);
+			}
+			if($password1 !== $password2){
+				return self::sweet_alert_single([
+					"title" => "Error",
+					"text"  => "Las contraseñas no coinciden",
+					"type"  => "error"
+				]);
+			}
 
-						$query2=self::execute_single_query("SELECT id FROM cuenta");
-						$correlative=($query2->rowCount())+1;
+			// 3) Validar tipo
+			if(!in_array($type, ['Administrador','Docente'])){
+				return self::sweet_alert_single([
+					"title" => "Error",
+					"text"  => "Tipo de usuario inválido",
+					"type"  => "error"
+				]);
+			}
 
-						$code=self::generate_code("AC",7,$correlative);
-						$password1=self::encryption($password1);
+			// 4) Revisar que el usuario no exista
+			$exists = self::execute_single_query("SELECT Usuario FROM cuenta WHERE Usuario='$username'");
+			if($exists->rowCount() > 0){
+				return self::sweet_alert_single([
+					"title" => "Error",
+					"text"  => "El nombre de usuario ya está registrado",
+					"type"  => "error"
+				]);
+			}
 
-						$dataAccount=[
-							"Privilegio"=>1,
-							"Usuario"=>$username,
-							"Clave"=>$password1,
-							"Tipo"=>"Administrador",
-							"Genero"=>$gender,
-							"Codigo"=>$code
-						];
+			// 5) Generar correlativo y código
+			$count = self::execute_single_query("SELECT id FROM cuenta")->rowCount() + 1;
+			$code  = self::generate_code('AC', 7, $count);
 
-						$dataAdmin=[
-							"Codigo"=>$code,
-							"Nombres"=>$name,
-							"Apellidos"=>$lastname
-						];
+			// 6) Encriptar contraseña
+			$encrypted = self::encryption($password1);
 
-						if(self::save_account($dataAccount) && self::add_admin_model($dataAdmin)){
-							$dataAlert=[
-								"title"=>"¡Administrador registrado!",
-								"text"=>"El administrador se registró con éxito en el sistema",
-								"type"=>"success"
-							];
-							unset($_POST);
-							return self::sweet_alert_single($dataAlert);
-						}else{
-							$dataAlert=[
-								"title"=>"¡Ocurrió un error inesperado!",
-								"text"=>"No hemos podido registrar el administrador, por favor intente nuevamente",
-								"type"=>"error"
-							];
-							return self::sweet_alert_single($dataAlert);
-						}
-					}else{
-						$dataAlert=[
-							"title"=>"¡Ocurrió un error inesperado!",
-							"text"=>"El nombre de usuario que acaba de ingresar ya se encuentra registrado en el sistema, por favor elija otro",
-							"type"=>"error"
-						];
-						return self::sweet_alert_single($dataAlert);
-					}
-				}else{
-					$dataAlert=[
-						"title"=>"¡Ocurrió un error inesperado!",
-						"text"=>"Las contraseñas que acabas de ingresar no coinciden",
-						"type"=>"error"
-					];
-					return self::sweet_alert_single($dataAlert);
-				}
+			// 7) Determinar privilegio
+			$privilegio = $type === 'Administrador' ? 1 : 2;
+
+			// 8) Preparar arrays de inserción
+			$dataAccount = [
+				"Privilegio" => $privilegio,
+				"Usuario"    => $username,
+				"Clave"      => $encrypted,
+				"Tipo"       => $type,
+				"Genero"     => $gender,
+				"Codigo"     => $code
+			];
+			$dataAdmin = [
+				"Codigo"    => $code,
+				"Nombres"   => $name,
+				"Apellidos" => $lastname
+			];
+
+			// 9) Guardar en ambas tablas
+			if(self::save_account($dataAccount) && self::add_admin_model($dataAdmin)){
+				return self::sweet_alert_single([
+					"title" => "$type registrado!",
+					"text"  => "El $type se registró con éxito en el sistema",
+					"type"  => "success"
+				]);
 			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"Debes de llenar los campos de las contraseñas para registrar el administrador",
-					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
+				return self::sweet_alert_single([
+					"title" => "Error inesperado",
+					"text"  => "No se pudo registrar el $type. Intenta de nuevo.",
+					"type"  => "error"
+				]);
 			}
 		}
 
@@ -98,123 +108,91 @@
 			if($admindata=self::data_admin_model($data)){
 				return $admindata;
 			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"No hemos podido seleccionar los datos del administrador",
+				return self::sweet_alert_single([
+					"title"=>"¡Ocurrió un error!",
+					"text"=>"No pudimos obtener datos del administrador",
 					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
+				]);
 			}
-
 		}
 
 		/*----------  Pagination Admin Controller  ----------*/
 		public function pagination_admin_controller($Pagina,$Registros){
-			$Pagina=self::clean_string($Pagina);
-			$Registros=self::clean_string($Registros);
+			$Pagina    = max(1, (int)$Pagina);
+			$Registros = max(1, (int)$Registros);
+			$Inicio    = ($Pagina - 1) * $Registros;
 
-			$Pagina = (isset($Pagina) && $Pagina>0) ? floor($Pagina) : 1;
+			$Datos = self::execute_single_query("
+				SELECT * FROM admin WHERE Codigo!='AC03576381'
+				ORDER BY Nombres ASC LIMIT $Inicio,$Registros
+			")->fetchAll();
 
-			$Inicio = ($Pagina>0) ? (($Pagina * $Registros)-$Registros) : 0;
+			$Total = self::execute_single_query("SELECT * FROM admin")->rowCount();
+			$Npaginas = ceil($Total/$Registros);
 
-			$Datos=self::execute_single_query("
-				SELECT * FROM admin WHERE Codigo!='AC03576381' ORDER BY Nombres ASC LIMIT $Inicio,$Registros
-			");
-			$Datos=$Datos->fetchAll();
-
-			$Total=self::execute_single_query("SELECT * FROM admin");
-			$Total=$Total->rowCount();
-
-			$Npaginas=ceil($Total/$Registros);
-
-			$table='
+			$table = '
 			<table class="table text-center">
 				<thead>
 					<tr>
-						<th class="text-center">#</th>
-						<th class="text-center">Nombres</th>
-						<th class="text-center">Apellidos</th>
-						<th class="text-center">A. Datos</th>
-						<th class="text-center">A. Cuenta</th>
-						<th class="text-center">Eliminar</th>
+						<th>#</th><th>Nombres</th><th>Apellidos</th>
+						<th>A. Datos</th><th>A. Cuenta</th><th>Eliminar</th>
 					</tr>
-				</thead>
-				<tbody>
+				</thead><tbody>
 			';
 
-			if($Total>=1){
-				$nt=$Inicio+1;
+			if($Total > 0){
+				$nt = $Inicio + 1;
 				foreach($Datos as $rows){
-					$table.='
+					$table .= "
 					<tr>
-						<td>'.$nt.'</td>
-						<td>'.$rows['Nombres'].'</td>
-						<td>'.$rows['Apellidos'].'</td>
+						<td>{$nt}</td>
+						<td>{$rows['Nombres']}</td>
+						<td>{$rows['Apellidos']}</td>
 						<td>
-							<a href="'.SERVERURL.'admininfo/'.$rows['Codigo'].'/" class="btn btn-success btn-raised btn-xs">
-								<i class="zmdi zmdi-refresh"></i>
-							</a>
+						  <a href='".SERVERURL."admininfo/{$rows['Codigo']}/' class='btn btn-success btn-xs'>
+						    <i class='zmdi zmdi-refresh'></i>
+						  </a>
 						</td>
 						<td>
-							<a href="'.SERVERURL.'account/'.$rows['Codigo'].'/" class="btn btn-success btn-raised btn-xs">
-								<i class="zmdi zmdi-refresh"></i>
-							</a>
+						  <a href='".SERVERURL."account/{$rows['Codigo']}/' class='btn btn-success btn-xs'>
+						    <i class='zmdi zmdi-refresh'></i>
+						  </a>
 						</td>
 						<td>
-							<a href="#!" class="btn btn-danger btn-raised btn-xs btnFormsAjax" data-action="delete" data-id="del-'.$rows['Codigo'].'">
-								<i class="zmdi zmdi-delete"></i>
-							</a>
-							<form action="" id="del-'.$rows['Codigo'].'" method="POST" enctype="multipart/form-data">
-								<input type="hidden" name="adminCode" value="'.$rows['Codigo'].'">
-							</form>
+						  <a href='#!' class='btn btn-danger btn-xs btnFormsAjax' data-action='delete' data-id='del-{$rows['Codigo']}'>
+						    <i class='zmdi zmdi-delete'></i>
+						  </a>
+						  <form id='del-{$rows['Codigo']}' method='POST'>
+						    <input type='hidden' name='adminCode' value='{$rows['Codigo']}'>
+						  </form>
 						</td>
-					</tr>
-					';
+					</tr>";
 					$nt++;
 				}
 			}else{
-				$table.='
-				<tr>
-					<td colspan="5">No hay registros en el sistema</td>
-				</tr>
-				';
+				$table .= "<tr><td colspan='6'>No hay registros</td></tr>";
 			}
 
-			$table.='
-				</tbody>
-			</table>
-			';
+			$table .= '</tbody></table>';
 
-			if($Total>=1){
-				$table.='
-					<nav class="text-center full-width">
-						<ul class="pagination pagination-sm">
-				';
-
-				if($Pagina==1){
-					$table.='<li class="disabled"><a>«</a></li>';
-				}else{
-					$table.='<li><a href="'.SERVERURL.'adminlist/'.($Pagina-1).'/">«</a></li>';
+			// Paginación
+			if($Total > $Registros){
+				$table .= "<nav class='text-center'><ul class='pagination pagination-sm'>";
+				// Anterior
+				$table .= $Pagina > 1
+					? "<li><a href='".SERVERURL."adminlist/".($Pagina-1)."/'>«</a></li>"
+					: "<li class='disabled'><a>«</a></li>";
+				// Números
+				for($i=1;$i<=$Npaginas;$i++){
+					$table .= $i==$Pagina
+						? "<li class='active'><a>{$i}</a></li>"
+						: "<li><a href='".SERVERURL."adminlist/{$i}/'>{$i}</a></li>";
 				}
-
-				for($i=1; $i <= $Npaginas; $i++){
-					if($Pagina == $i){
-						$table.='<li class="active"><a href="'.SERVERURL.'adminlist/'.$i.'/">'.$i.'</a></li>';
-					}else{
-						$table.='<li><a href="'.SERVERURL.'adminlist/'.$i.'/">'.$i.'</a></li>';
-					}
-				}
-
-				if($Pagina==$Npaginas){
-					$table.='<li class="disabled"><a>»</a></li>';
-				}else{
-					$table.='<li><a href="'.SERVERURL.'adminlist/'.($Pagina+1).'/">»</a></li>';
-				}
-
-				$table.='
-						</ul>
-					</nav>
-				';
+				// Siguiente
+				$table .= $Pagina < $Npaginas
+					? "<li><a href='".SERVERURL."adminlist/".($Pagina+1)."/'>»</a></li>"
+					: "<li class='disabled'><a>»</a></li>";
+				$table .= '</ul></nav>';
 			}
 
 			return $table;
@@ -226,49 +204,45 @@
 			$code=self::clean_string($code);
 
 			if(self::delete_account($code) && self::delete_admin_model($code)){
-				$dataAlert=[
-					"title"=>"¡Administrador eliminado!",
-					"text"=>"El administrador ha sido eliminado del sistema satisfactoriamente",
+				return self::sweet_alert_single([
+					"title"=>"¡Eliminado!",
+					"text"=>"Administrador eliminado con éxito",
 					"type"=>"success"
-				];
-				return self::sweet_alert_single($dataAlert);
+				]);
 			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"No pudimos eliminar el administrador por favor intente nuevamente",
+				return self::sweet_alert_single([
+					"title"=>"Error",
+					"text"=>"No pudimos eliminar al administrador",
 					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
+				]);
 			}
 		}
 
 
 		/*----------  Update Admin Controller  ----------*/
 		public function update_admin_controller(){
-			$code=self::clean_string($_POST['code']);
-			$name=self::clean_string($_POST['name']);
-			$lastname=self::clean_string($_POST['lastname']);
+			$code     = self::clean_string($_POST['code']);
+			$name     = self::clean_string($_POST['name']);
+			$lastname = self::clean_string($_POST['lastname']);
 
-			$data=[
-				"Codigo"=>$code,
-				"Nombres"=>$name,
-				"Apellidos"=>$lastname
+			$data = [
+				"Codigo"    => $code,
+				"Nombres"   => $name,
+				"Apellidos" => $lastname
 			];
 
 			if(self::update_admin_model($data)){
-				$dataAlert=[
-					"title"=>"¡Administrador actualizado!",
-					"text"=>"Los datos del administrador fueron actualizados con éxito",
+				return self::sweet_alert_single([
+					"title"=>"¡Actualizado!",
+					"text"=>"Datos del administrador actualizados",
 					"type"=>"success"
-				];
-				return self::sweet_alert_single($dataAlert);
+				]);
 			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"No hemos podido actualizar los datos del administrador, por favor intente nuevamente",
+				return self::sweet_alert_single([
+					"title"=>"Error",
+					"text"=>"No pudimos actualizar los datos",
 					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
+				]);
 			}
 		}
 	}
