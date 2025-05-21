@@ -1,4 +1,7 @@
-<?php if($_SESSION['userType']=="Administrador"): ?>
+<?php 
+// Sólo Administradores y Docentes pueden ver esta página
+if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])): 
+?>
 
 <!-- Estilos inline actualizados -->
 <style>
@@ -178,8 +181,8 @@
 </section>
 
 <?php 
-  else:
+else:
     $logout2 = new loginController();
     echo $logout2->login_session_force_destroy_controller(); 
-  endif;
+endif;
 ?>
