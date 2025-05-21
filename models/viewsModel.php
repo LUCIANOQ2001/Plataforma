@@ -21,6 +21,9 @@
 				$views=="consultas" ||
 				$views=="consultaslist" ||
                 $views=="avisos" ||
+				$views== "asistencia" ||
+				$views=="asistencialist" ||
+				$views=="dashboard" ||
                 $views=="avisoslist"
 			){
 				if(is_file("./views/contents/".$views."-view.php")){
