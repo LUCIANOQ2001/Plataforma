@@ -23,7 +23,7 @@
           </a>
         </li>
       </ul>
-      <form action="" id="form-logout" method="POST" enctype="multipart/form-data">
+      <form action="" id="form-logout" method="POST">
         <input type="hidden" name="token" value="<?php echo $_SESSION['userToken']; ?>">
       </form>
     </div>
@@ -66,13 +66,24 @@
           </ul>
         </li>
 
+        <!-- Nuevo menú Cursos -->
+        <li>
+          <a href="#!" class="btn-sideBar-SubMenu">
+            <i class="zmdi zmdi-book zmdi-hc-fw"></i> Cursos <i class="zmdi zmdi-caret-down pull-right"></i>
+          </a>
+          <ul class="list-unstyled full-box submenu">
+            <li><a href="<?php echo SERVERURL; ?>curso/">Nuevo Curso</a></li>
+            <li><a href="<?php echo SERVERURL; ?>cursolist/">Lista de Cursos</a></li>
+          </ul>
+        </li>
+
       <?php elseif($_SESSION['userType']==="Docente"): ?>
-        <!-- Menú Docente (igual al de Admin, sin “Nuevo Docente”) -->
+        <!-- Menú Docente -->
         <li><a href="<?php echo SERVERURL; ?>dashboard/"><i class="zmdi zmdi-view-dashboard zmdi-hc-fw"></i> Inicio</a></li>
 
         <li>
           <a href="#!" class="btn-sideBar-SubMenu">
-            <i class="zmdi zmdi-account zmdi-hc-fw"></i> Docentes <i class="zmdi zmdi-caret-down pull-right"></i>
+            <i class="zmdi zmdi-comment-text zmdi-hc-fw"></i> Consultas <i class="zmdi zmdi-caret-down pull-right"></i>
           </a>
           <ul class="list-unstyled full-box submenu">
             <li><a href="<?php echo SERVERURL; ?>consultaslist/">Historial de Consultas</a></li>
@@ -99,12 +110,33 @@
           </ul>
         </li>
 
+        <!-- Nuevo menú Cursos -->
+        <li>
+          <a href="#!" class="btn-sideBar-SubMenu">
+            <i class="zmdi zmdi-book zmdi-hc-fw"></i> Cursos <i class="zmdi zmdi-caret-down pull-right"></i>
+          </a>
+          <ul class="list-unstyled full-box submenu">
+            <li><a href="<?php echo SERVERURL; ?>miscursos/">Mis Cursos</a></li>
+          </ul>
+        </li>
+
       <?php else: ?>
         <!-- Menú Estudiante -->
         <li><a href="<?php echo SERVERURL; ?>home/"><i class="zmdi zmdi-view-dashboard zmdi-hc-fw"></i> Inicio</a></li>
         <li><a href="<?php echo SERVERURL; ?>videonow/"><i class="zmdi zmdi-tv-play zmdi-hc-fw"></i> Clases de hoy</a></li>
         <li><a href="<?php echo SERVERURL; ?>videolist/"><i class="zmdi zmdi-tv-list zmdi-hc-fw"></i> Listado de Clases</a></li>
         <li><a href="<?php echo SERVERURL; ?>asistencialist/"><i class="zmdi zmdi-check-circle zmdi-hc-fw"></i> Historial de Asistencias</a></li>
+
+        <!-- Nuevo menú Cursos -->
+        <li>
+          <a href="#!" class="btn-sideBar-SubMenu">
+            <i class="zmdi zmdi-book zmdi-hc-fw"></i> Cursos <i class="zmdi zmdi-caret-down pull-right"></i>
+          </a>
+          <ul class="list-unstyled full-box submenu">
+            <li><a href="<?php echo SERVERURL; ?>miscursos/">Mis Cursos</a></li>
+          </ul>
+        </li>
+
         <li>
           <a href="#!" class="btn-sideBar-SubMenu">
             <i class="zmdi zmdi-comment-text zmdi-hc-fw"></i> Consultas <i class="zmdi zmdi-caret-down pull-right"></i>
@@ -114,6 +146,7 @@
             <li><a href="<?php echo SERVERURL; ?>consultaslist/">Historial de Consultas</a></li>
           </ul>
         </li>
+
       <?php endif; ?>
 
     </ul>
@@ -123,10 +156,12 @@
 <script>
   document.addEventListener("DOMContentLoaded", function(){
     document.querySelectorAll(".btn-sideBar-SubMenu").forEach(item => {
-      item.addEventListener("click", () => {
-        const sub = item.nextElementSibling;
-        document.querySelectorAll(".submenu").forEach(s => { if(s!==sub) s.style.display = "none"; });
-        sub.style.display = sub.style.display==="block"?"none":"block";
+      item.addEventListener("click", function(e){
+        e.preventDefault();
+        // oculta todos los submenus excepto el actual
+        document.querySelectorAll(".submenu").forEach(s => s.style.display = "none");
+        const sub = this.nextElementSibling;
+        sub.style.display = sub.style.display==="block" ? "none" : "block";
       });
     });
   });
