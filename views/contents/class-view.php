@@ -1,6 +1,13 @@
 <?php 
 // Sólo Administradores y Docentes pueden ver esta página
 if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])): 
+
+  // Cargamos el controlador de cursos para poblar el <select>
+  require_once __DIR__ . '/../../controllers/cursoController.php';
+  $insCurso     = new cursoController();
+  $todosCursos  = $insCurso->list_cursos_controller();
+
+  $dateNow = date("Y-m-d");
 ?>
 
 <!-- Estilos inline actualizados -->
@@ -108,18 +115,39 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
               <fieldset>
                 <legend><i class="zmdi zmdi-videocam"></i> Datos de la clase</legend>
                 <div class="row">
+
+                  <!-- ** NUEVO: Selector de Curso ** -->
+                  <div class="col-sm-6">
+                    <div class="form-group label-floating">
+                      <span class="control-label">Curso *</span>
+                      <select name="curso_id" class="form-control" required>
+                        <option value="">Seleccione curso...</option>
+                        <?php foreach($todosCursos as $c): ?>
+                          <option value="<?php echo $c['id']; ?>">
+                            <?php echo htmlspecialchars($c['Nombre']); ?>
+                          </option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Título -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Título *</span>
                       <input class="form-control" type="text" name="title" required>
                     </div>
                   </div>
+
+                  <!-- Tutor o Docente -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Tutor o Docente *</span>
                       <input class="form-control" type="text" name="teacher" required>
                     </div>
                   </div>
+
+                  <!-- Fecha -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Fecha *</span>
@@ -127,12 +155,15 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
                              value="<?php echo $dateNow; ?>" required>
                     </div>
                   </div>
+
+                  <!-- Código del vídeo -->
                   <div class="col-xs-12">
                     <div class="form-group label-floating">
                       <label class="control-label">Código del vídeo *</label>
                       <textarea name="code" class="form-control" rows="3" required></textarea>
                     </div>
                   </div>
+
                 </div>
               </fieldset>
 
