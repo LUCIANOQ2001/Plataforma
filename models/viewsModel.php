@@ -24,6 +24,14 @@
 				$views== "asistencia" ||
 				$views=="asistencialist" ||
 				$views=="dashboard" ||
+				$views=="curso" ||
+				$views=="miscursos" ||
+				$views=="sesion" ||
+				$views=="material" ||
+				$views=="grabaciones" ||
+				$views=="foro" ||
+				$views=="foroslist" ||
+				$views=="anunciocurso" ||
                 $views=="avisoslist"
 			){
 				if(is_file("./views/contents/".$views."-view.php")){

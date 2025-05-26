@@ -41,7 +41,26 @@
 			$query->execute();
 			return $query;
 		}
-
+		protected static function conectar() {
+			try {
+				$pdo = new PDO("mysql:host=localhost;dbname=plataformavirtual", "root", "");
+				$pdo->exec("SET CHARACTER SET utf8");
+				return $pdo;
+			} catch (PDOException $e) {
+				die("Error de conexión: " . $e->getMessage());
+			}
+		}
+		public static function ejecutar_consulta_simple($consulta) {
+			try {
+				$conexion = self::conectar(); // usa tu método de conexión aquí
+				$stmt = $conexion->prepare($consulta);
+				$stmt->execute();
+				return $stmt;
+			} catch (PDOException $e) {
+				die("Error en consulta simple: " . $e->getMessage());
+			}
+		}
+		
 
 		/*----------  Eliminar cuenta - Delete account  ----------*/
 		public function delete_account($code){

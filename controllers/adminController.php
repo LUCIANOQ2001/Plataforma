@@ -7,6 +7,12 @@
 
 	class adminController extends adminModel{
 
+	public function count_docentes() {
+    $stmt = mainModel::ejecutar_consulta_simple("SELECT COUNT(*) AS total FROM docente");
+    return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+	}
+
+
 		/*----------  Add Admin/Docente Controller  ----------*/
 		public function add_admin_controller(){
 			// 1) Limpiar entradas

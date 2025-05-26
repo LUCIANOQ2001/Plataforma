@@ -8,24 +8,40 @@ if($actionsRequired){
 
 class loginController extends loginModel {
 
-    /**
+   /**
      * Controlador para iniciar sesión
      */
     public function login_session_start_controller(){
-        // sanitizar entradas
-        $userName = self::clean_string($_POST['loginUserName']);
-        $userPass = self::clean_string($_POST['loginUserPass']);
-        $userPass = self::encryption($userPass);
+        // 1) Sanitizar entradas
+        $userNameRaw = $_POST['loginUserName']  ?? '';
+        $userPassRaw = $_POST['loginUserPass']  ?? '';
 
-        $data = [
-            "Usuario" => $userName,
-            "Clave"   => $userPass
-        ];
+        $userName = self::clean_string($userNameRaw);
+        $userPass = trim($userPassRaw);
 
-        // pedimos al modelo que intente iniciar sesión
-        if($dataAccount = self::login_session_start_model($data)){
-            if($dataAccount->rowCount() === 1){
-                $row = $dataAccount->fetch();
+        // 2) Buscamos al usuario solo por su nombre
+        $pdo = self::connect(); // asumiendo que loginModel provee connect()
+        $stmt = $pdo->prepare("SELECT Usuario, Clave, Tipo, Codigo, Privilegio, Genero 
+                                 FROM cuenta
+                                WHERE Usuario = ?");
+        $stmt->execute([$userName]);
+
+        if($stmt->rowCount() === 1){
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $hash = $row['Clave'];
+
+            // 3) Verificamos la contraseña
+            $isValid = false;
+            if(substr($hash, 0, 4) === '$2y$') {
+                // es bcrypt
+                $isValid = password_verify($userPass, $hash);
+            } else {
+                // tu cifrado legacy
+                $isValid = ($hash === self::encryption($userPass));
+            }
+
+            if($isValid){
+                // 4) Creamos la sesión
                 session_start();
                 $_SESSION['userName']      = $row['Usuario'];
                 $_SESSION['userType']      = $row['Tipo'];
@@ -33,57 +49,50 @@ class loginController extends loginModel {
                 $_SESSION['userPrivilege'] = $row['Privilegio'];
                 $_SESSION['userToken']     = md5(uniqid(mt_rand(), true));
 
-                // Asignar avatar y URL de redirección según tipo
-                if($row['Tipo'] === "Administrador"){
-                    $_SESSION['Avatar'] = "avatar-chef.png";
-                    $url = SERVERURL . "dashboard/";
-                }
-                elseif($row['Tipo'] === "Docente"){
-                    // puedes personalizar avatares distintos para docentes
-                    if($row['Genero'] === "Masculino"){
-                        $_SESSION['Avatar'] = "avatar-user-male.png";
-                    } else {
-                        $_SESSION['Avatar'] = "avatar-user-female.png";
-                    }
-                    $url = SERVERURL . "dashboard/"; /* falta arreglar esto*/
-                }
-                elseif($row['Tipo'] === "Estudiante"){
-                    if($row['Genero'] === "Masculino"){
-                        $_SESSION['Avatar'] = "avatar-user-male.png";
-                    } else {
-                        $_SESSION['Avatar'] = "avatar-user-female.png";
-                    }
-                    $url = SERVERURL . "home/";
-                } else {
-                    // por defecto
-                    $_SESSION['Avatar'] = "avatar-user-male.png";
-                    $url = SERVERURL . "login/";
+                // 5) Avatar y URL según tipo
+                switch($row['Tipo']){
+                    case 'Administrador':
+                        $_SESSION['Avatar'] = 'avatar-chef.png';
+                        $url = SERVERURL . 'dashboard/';
+                        break;
+                    case 'Docente':
+                        $_SESSION['Avatar'] = ($row['Genero']==='Masculino')
+                                             ? 'avatar-user-male.png'
+                                             : 'avatar-user-female.png';
+                        $url = SERVERURL . 'dashboard/';
+                        break;
+                    case 'Estudiante':
+                        $_SESSION['Avatar'] = ($row['Genero']==='Masculino')
+                                             ? 'avatar-user-male.png'
+                                             : 'avatar-user-female.png';
+                        $url = SERVERURL . 'home/';
+                        break;
+                    default:
+                        $_SESSION['Avatar'] = 'avatar-user-male.png';
+                        $url = SERVERURL . 'login/';
                 }
 
-                // redirige en JavaScript
-                return '<script type="text/javascript">'
-                     . 'window.location="' . $url . '";'
-                     . '</script>';
+                return '<script>window.location="' . $url . '";</script>';
             } else {
-                // credenciales incorrectas
+                // contraseña incorrecta
                 $dataAlert = [
-                    "title" => "Error de inicio de sesión",
-                    "text"  => "El nombre de usuario o la contraseña no son correctos.",
+                    "title" => "Acceso denegado",
+                    "text"  => "Usuario o contraseña incorrectos.",
                     "type"  => "error"
                 ];
                 return self::sweet_alert_single($dataAlert);
             }
+
         } else {
-            // falla la petición al modelo
+            // usuario no existe
             $dataAlert = [
-                "title" => "Error inesperado",
-                "text"  => "No se pudo procesar la petición.",
+                "title" => "Acceso denegado",
+                "text"  => "Usuario o contraseña incorrectos.",
                 "type"  => "error"
             ];
             return self::sweet_alert_single($dataAlert);
         }
     }
-
     /**
      * Controlador para cerrar sesión (logout normal)
      */

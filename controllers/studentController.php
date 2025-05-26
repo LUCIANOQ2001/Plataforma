@@ -1,284 +1,185 @@
 <?php
-	if($actionsRequired){
-		require_once "../models/studentModel.php";
-	}else{ 
-		require_once "./models/studentModel.php";
-	}
+class studentController {
+    private $pdo;
 
-	class studentController extends studentModel{
+    public function __construct(){
+        $this->pdo = new PDO(
+            'mysql:host=127.0.0.1;dbname=plataformavirtual;charset=utf8',
+            'root','',
+            [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
+        );
+    }
+    public function count_estudiantes() {
+        $stmt = mainModel::ejecutar_consulta_simple("SELECT COUNT(*) AS total FROM estudiante");
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+    /**
+     * Trae todos los cursos disponibles para asignar
+     */
+    public function list_cursos_controller(): array {
+        $stmt = $this->pdo->query("SELECT id, Nombre FROM curso ORDER BY Nombre");
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-		/*----------  Add Student Controller  ----------*/
-		public function add_student_controller(){
-			$name=self::clean_string($_POST['name']);
-			$lastname=self::clean_string($_POST['lastname']);
-			$gender=self::clean_string($_POST['gender']);
-			$email=self::clean_string($_POST['email']);
-			$username=self::clean_string($_POST['username']);
-			$password1=self::clean_string($_POST['password1']);
-			$password2=self::clean_string($_POST['password2']);
+    /**
+     * Inserta un nuevo estudiante (+ cuenta) y asigna los cursos marcados.
+     * Recibe $_POST completo.
+     */
+    public function add_student_controller(array $post): string {
+        if (empty($post['name']) || empty($post['lastname']) || empty($post['username'])
+            || empty($post['password1']) || empty($post['password2'])
+            || empty($post['cursos'] ?? [])) {
+            return '<div class="alert alert-warning text-center">
+                      Complete todos los campos.
+                    </div>';
+        }
+        if ($post['password1'] !== $post['password2']) {
+            return '<div class="alert alert-warning text-center">
+                      Las contraseñas no coinciden.
+                    </div>';
+        }
 
-			if($password1!="" || $password2!=""){
-				if($password1==$password2){
-					$query1=self::execute_single_query("SELECT Usuario FROM cuenta WHERE Usuario='$username'");
-					if($query1->rowCount()<=0){
-						$query2=self::execute_single_query("SELECT id FROM cuenta");
-						$correlative=($query2->rowCount())+1;
+        try {
+            $this->pdo->beginTransaction();
 
-						$code=self::generate_code("EC",7,$correlative);
-						$password1=self::encryption($password1);
+            // 1) Crear cuenta
+            $usuario   = trim($post['username']);
+            $clave     = password_hash($post['password1'], PASSWORD_BCRYPT);
+            $tipo      = 'Estudiante';
+            $genero    = $post['gender'] ?? '';
+            $codigoEst = uniqid();
 
-						$dataAccount=[
-							"Privilegio"=>4,
-							"Usuario"=>$username,
-							"Clave"=>$password1,
-							"Tipo"=>"Estudiante",
-							"Genero"=>$gender,
-							"Codigo"=>$code
-						];
+            $ins1 = $this->pdo->prepare("
+                INSERT INTO cuenta (Privilegio, Usuario, Clave, Tipo, Genero, Codigo)
+                VALUES (4,?,?,?,?,?)
+            ");
+            $ins1->execute([$usuario, $clave, $tipo, $genero, $codigoEst]);
 
-						$dataStudent=[
-							"Codigo"=>$code,
-							"Nombres"=>$name,
-							"Apellidos"=>$lastname,
-							"Email"=>$email
-						];
+            // 2) Crear estudiante
+            $nombres   = trim($post['name']);
+            $apellidos = trim($post['lastname']);
+            $email     = trim($post['email'] ?? '');
 
-						if(self::save_account($dataAccount) && self::add_student_model($dataStudent)){
-							$dataAlert=[
-								"title"=>"¡Estudiante registrado!",
-								"text"=>"El estudiante se registró con éxito en el sistema",
-								"type"=>"success"
-							];
-							unset($_POST);
-							return self::sweet_alert_single($dataAlert);
-						}else{
-							$dataAlert=[
-								"title"=>"¡Ocurrió un error inesperado!",
-								"text"=>"No hemos podido registrar el estudiante, por favor intente nuevamente",
-								"type"=>"error"
-							];
-							return self::sweet_alert_single($dataAlert);
-						}
+            $ins2 = $this->pdo->prepare("
+                INSERT INTO estudiante (Codigo, Nombres, Apellidos, Email)
+                VALUES (?,?,?,?)
+            ");
+            $ins2->execute([$codigoEst, $nombres, $apellidos, $email]);
 
-					}else{
-						$dataAlert=[
-							"title"=>"¡Ocurrió un error inesperado!",
-							"text"=>"El nombre de usuario que acaba de ingresar ya se encuentra registrado en el sistema, por favor elija otro",
-							"type"=>"error"
-						];
-						return self::sweet_alert_single($dataAlert);
-					}
-				}else{
-					$dataAlert=[
-						"title"=>"¡Ocurrió un error inesperado!",
-						"text"=>"Las contraseñas que acabas de ingresar no coinciden",
-						"type"=>"error"
-					];
-					return self::sweet_alert_single($dataAlert);
-				}
-			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"Debes de llenar los campos de las contraseñas para registrar el estudiante",
-					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
-			}
-		}
+            // 3) Asignar cursos
+            $asigna = $this->pdo->prepare("
+                INSERT IGNORE INTO curso_estudiante (CursoId, EstudianteCodigo)
+                VALUES (?,?)
+            ");
+            foreach ($post['cursos'] as $cursoId) {
+                $asigna->execute([(int)$cursoId, $codigoEst]);
+            }
 
+            $this->pdo->commit();
+            return '<div class="alert alert-success text-center">
+                      Estudiante creado correctamente.
+                    </div>';
+        } catch (PDOException $e) {
+            $this->pdo->rollBack();
+            return '<div class="alert alert-danger text-center">
+                      Error al guardar estudiante:<br>'.htmlspecialchars($e->getMessage()).'
+                    </div>';
+        }
+    }
 
+    /**
+     * Elimina un estudiante (y sus asignaciones de curso).
+     */
+    public function delete_student_controller(string $codigo): string {
+        try {
+            $del = $this->pdo->prepare("DELETE FROM estudiante WHERE Codigo = ?");
+            $del->execute([$codigo]);
+            return '<div class="alert alert-success text-center">
+                      Estudiante eliminado.
+                    </div>';
+        } catch (PDOException $e) {
+            return '<div class="alert alert-danger text-center">
+                      Error al eliminar estudiante:<br>'.htmlspecialchars($e->getMessage()).'
+                    </div>';
+        }
+    }
 
-		/*----------  Data Student Controller  ----------*/
-		public function data_student_controller($Type,$Code){
-			$Type=self::clean_string($Type);
-			$Code=self::clean_string($Code);
+    /**
+     * Pagina el listado de estudiantes y devuelve la tabla HTML.
+     * Corrige offset negativo si $page < 1.
+     */
+    public function pagination_student_controller(int $page = 1, int $limit = 10): string {
+        // Asegurar que la página mínima sea 1
+        if ($page < 1) {
+            $page = 1;
+        }
+        $offset = ($page - 1) * $limit;
 
-			$data=[
-				"Tipo"=>$Type,
-				"Codigo"=>$Code
-			];
+        // total de estudiantes
+        $total = $this->pdo->query("SELECT COUNT(*) FROM estudiante")->fetchColumn();
+        $pages = max(1, ceil($total / $limit));
 
-			if($studentdata=self::data_student_model($data)){
-				return $studentdata;
-			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"No hemos podido seleccionar los datos del estudiante",
-					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
-			}
+        // datos con GROUP_CONCAT de cursos
+        $stmt = $this->pdo->prepare("
+            SELECT 
+              e.Codigo,
+              CONCAT(e.Apellidos, ', ', e.Nombres) AS NombreCompleto,
+              e.Email,
+              COALESCE(
+                GROUP_CONCAT(c.Nombre ORDER BY c.Nombre SEPARATOR ', '),
+                '—'
+              ) AS Cursos
+            FROM estudiante e
+            LEFT JOIN curso_estudiante ce 
+              ON ce.EstudianteCodigo = e.Codigo
+            LEFT JOIN curso c 
+              ON c.id = ce.CursoId
+            GROUP BY e.Codigo
+            ORDER BY e.Apellidos, e.Nombres
+            LIMIT :offset, :limit
+        ");
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit',  $limit,  PDO::PARAM_INT);
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-		}
+        // arma la tabla
+        $html = '<table class="table"><thead><tr>'
+              .'<th>Código</th><th>Nombre completo</th><th>Email</th><th>Cursos</th><th>Acciones</th>'
+              .'</tr></thead><tbody>';
+        if ($rows) {
+            foreach ($rows as $r) {
+                $html .= '<tr>'
+                       .'<td>'.htmlspecialchars($r['Codigo']).'</td>'
+                       .'<td>'.htmlspecialchars($r['NombreCompleto']).'</td>'
+                       .'<td>'.htmlspecialchars($r['Email']).'</td>'
+                       .'<td>'.htmlspecialchars($r['Cursos']).'</td>'
+                       .'<td>
+                           <form method="POST" style="display:inline;">
+                             <input type="hidden" name="studentCode" value="'.htmlspecialchars($r['Codigo']).'">
+                             <button onclick="return confirm(\'¿Eliminar este estudiante?\')" 
+                                     class="btn btn-danger btn-xs">
+                               <i class="zmdi zmdi-delete"></i>
+                             </button>
+                           </form>
+                         </td>'
+                       .'</tr>';
+            }
+        } else {
+            $html .= '<tr><td colspan="5">No hay estudiantes registrados.</td></tr>';
+        }
+        $html .= '</tbody></table>';
 
+        // paginación
+        $html .= '<nav><ul class="pagination">';
+        for ($i = 1; $i <= $pages; $i++) {
+            $act = $i === $page ? ' active' : '';
+            $html .= '<li class="page-item'.$act.'">'
+                   .'<a class="page-link" href="'.SERVERURL.'studentlist/'.$i.'/">'.$i.'</a>'
+                   .'</li>';
+        }
+        $html .= '</ul></nav>';
 
-
-		/*----------  Pagination Student Controller  ----------*/
-		public function pagination_student_controller($Pagina,$Registros){
-			$Pagina=self::clean_string($Pagina);
-			$Registros=self::clean_string($Registros);
-
-			$Pagina = (isset($Pagina) && $Pagina>0) ? floor($Pagina) : 1;
-
-			$Inicio = ($Pagina>0) ? (($Pagina * $Registros)-$Registros) : 0;
-
-			$Datos=self::execute_single_query("
-				SELECT * FROM estudiante ORDER BY Nombres ASC LIMIT $Inicio,$Registros
-			");
-			$Datos=$Datos->fetchAll();
-
-			$Total=self::execute_single_query("SELECT * FROM estudiante");
-			$Total=$Total->rowCount();
-
-			$Npaginas=ceil($Total/$Registros);
-
-			$table='
-			<table class="table text-center">
-				<thead>
-					<tr>
-						<th class="text-center">#</th>
-						<th class="text-center">Nombres</th>
-						<th class="text-center">Apellidos</th>
-						<th class="text-center">Email</th>
-						<th class="text-center">A. Datos</th>
-						<th class="text-center">A. Cuenta</th>
-						<th class="text-center">Eliminar</th>
-					</tr>
-				</thead>
-				<tbody>
-			';
-
-			if($Total>=1){
-				$nt=$Inicio+1;
-				foreach($Datos as $rows){
-					$table.='
-					<tr>
-						<td>'.$nt.'</td>
-						<td>'.$rows['Nombres'].'</td>
-						<td>'.$rows['Apellidos'].'</td>
-						<td>'.$rows['Email'].'</td>
-						<td>
-							<a href="'.SERVERURL.'studentinfo/'.$rows['Codigo'].'/" class="btn btn-success btn-raised btn-xs">
-								<i class="zmdi zmdi-refresh"></i>
-							</a>
-						</td>
-						<td>
-							<a href="'.SERVERURL.'account/'.$rows['Codigo'].'/" class="btn btn-success btn-raised btn-xs">
-								<i class="zmdi zmdi-refresh"></i>
-							</a>
-						</td>
-						<td>
-							<a href="#!" class="btn btn-danger btn-raised btn-xs btnFormsAjax" data-action="delete" data-id="del-'.$rows['Codigo'].'">
-								<i class="zmdi zmdi-delete"></i>
-							</a>
-							<form action="" id="del-'.$rows['Codigo'].'" method="POST" enctype="multipart/form-data">
-								<input type="hidden" name="studentCode" value="'.$rows['Codigo'].'">
-							</form>
-						</td>
-					</tr>
-					';
-					$nt++;
-				}
-			}else{
-				$table.='
-				<tr>
-					<td colspan="5">No hay registros en el sistema</td>
-				</tr>
-				';
-			}
-
-			$table.='
-				</tbody>
-			</table>
-			';
-
-			if($Total>=1){
-				$table.='
-					<nav class="text-center full-width">
-						<ul class="pagination pagination-sm">
-				';
-
-				if($Pagina==1){
-					$table.='<li class="disabled"><a>«</a></li>';
-				}else{
-					$table.='<li><a href="'.SERVERURL.'studentlist/'.($Pagina-1).'/">«</a></li>';
-				}
-
-				for($i=1; $i <= $Npaginas; $i++){
-					if($Pagina == $i){
-						$table.='<li class="active"><a href="'.SERVERURL.'studentlist/'.$i.'/">'.$i.'</a></li>';
-					}else{
-						$table.='<li><a href="'.SERVERURL.'studentlist/'.$i.'/">'.$i.'</a></li>';
-					}
-				}
-
-				if($Pagina==$Npaginas){
-					$table.='<li class="disabled"><a>»</a></li>';
-				}else{
-					$table.='<li><a href="'.SERVERURL.'studentlist/'.($Pagina+1).'/">»</a></li>';
-				}
-
-				$table.='
-						</ul>
-					</nav>
-				';
-			}
-
-			return $table;
-		}
-
-
-		/*----------  Delete Student Controller  ----------*/
-		public function delete_student_controller($code){
-			$code=self::clean_string($code);
-
-			if(self::delete_account($code) && self::delete_student_model($code)){
-				$dataAlert=[
-					"title"=>"¡Estudiante eliminado!",
-					"text"=>"El estudiante ha sido eliminado del sistema satisfactoriamente",
-					"type"=>"success"
-				];
-				return self::sweet_alert_single($dataAlert);
-			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"No pudimos eliminar el estudiante por favor intente nuevamente",
-					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
-			}
-		}
-
-
-		/*----------  Update Student Controller  ----------*/
-		public function update_student_controller(){
-			$code=self::clean_string($_POST['code']);
-			$name=self::clean_string($_POST['name']);
-			$lastname=self::clean_string($_POST['lastname']);
-			$email=self::clean_string($_POST['email']);
-
-			$data=[
-				"Codigo"=>$code,
-				"Nombres"=>$name,
-				"Apellidos"=>$lastname,
-				"Email"=>$email
-			];
-
-			if(self::update_student_model($data)){
-				$dataAlert=[
-					"title"=>"¡Estudiante actualizado!",
-					"text"=>"Los datos del estudiante fueron actualizados con éxito",
-					"type"=>"success"
-				];
-				return self::sweet_alert_single($dataAlert);
-			}else{
-				$dataAlert=[
-					"title"=>"¡Ocurrió un error inesperado!",
-					"text"=>"No hemos podido actualizar los datos del estudiante, por favor intente nuevamente",
-					"type"=>"error"
-				];
-				return self::sweet_alert_single($dataAlert);
-			}
-		}
-
-	}
+        return $html;
+    }
+}
