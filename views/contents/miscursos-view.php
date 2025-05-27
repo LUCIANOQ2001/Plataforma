@@ -25,63 +25,108 @@ if($userType === 'Estudiante'){
 ?>
 
 <style>
-  .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 20px;
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1f28;
+    color: #fff;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
     box-sizing: border-box;
   }
+
+  .dashboard-contentPage {
+    margin-left: 170px;
+    padding: 30px 40px;
+    min-height: 100vh;
+    background-color: #1e1f28;
+    max-width: calc(100vw - 170px);
+    box-sizing: border-box;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 1px 1px 6px #000;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .lead {
+    font-size: 1.1rem;
+    color: #ccc;
+    text-align: center;
+    max-width: 780px;
+    margin: 0 auto 30px auto;
+  }
+
   .courses-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px,1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
   }
+
   .course-card {
-    position: relative;
     background: #2a2c3b;
-    border-radius: 6px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     overflow: hidden;
-    transition: transform .2s;
+    transition: transform 0.2s ease-in-out;
   }
+
   .course-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
   }
+
   .course-header {
-    height: 180px;
+    height: 160px;
     background-size: cover;
     background-position: center;
   }
+
   .course-body {
-    padding: .8rem;
+    padding: 1rem;
     color: #fff;
   }
+
   .course-title {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
+    color: #29b6f6;
   }
+
   .course-subtitle {
-    font-size: .85rem;
-    color: #aaa;
-    margin-bottom: .5rem;
+    font-size: 0.9rem;
+    color: #bbb;
+    margin-bottom: 0.5rem;
   }
+
   .course-dropdown {
     background: #333;
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: hidden;
     display: none;
-    margin-top: .5rem;
+    margin-top: 0.5rem;
+    box-shadow: inset 0 0 0 1px #444;
   }
+
   .course-dropdown a {
     display: block;
-    padding: .5rem 1rem;
+    padding: 10px 15px;
     color: #fff;
     text-decoration: none;
-    font-size: .9rem;
+    font-size: 0.9rem;
+    transition: background 0.3s;
   }
+
   .course-dropdown a:hover {
     background: #444;
   }
+
   .course-card:hover .course-dropdown {
     display: block;
   }
@@ -100,7 +145,7 @@ if($userType === 'Estudiante'){
 
   <div class="container-fluid">
     <?php if(empty($cursos)): ?>
-      <p>No hay cursos para mostrar.</p>
+      <p class="text-center">No hay cursos para mostrar.</p>
     <?php else: ?>
       <div class="courses-grid">
         <?php foreach($cursos as $c): ?>

@@ -10,6 +10,9 @@ $actionsRequired = false;
 <html lang="es">
 <head>
     <?php include "./views/inc/links.php"; ?>
+    <link rel="icon" href="<?php echo SERVERURL; ?>views/assets/img/LOGO_CIP.ico" type="image/x-icon">
+
+
 </head>
 <body>
     <?php 

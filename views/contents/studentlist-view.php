@@ -21,35 +21,137 @@ $page  = isset($parts[1]) && intval($parts[1]) > 0
          ? intval($parts[1])
          : 1;
 ?>
-
 <style>
-.dashboard-contentPage {
-    margin-left: 170px;
-    padding: 20px;
-    width: calc(100% - 270px);
-    box-sizing: border-box;
-    overflow: auto;
+/* Fondo completo y sin scroll lateral */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1e1f28;
+  color: #fff;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
-.dashboard-contentPage.full-box { width: auto; }
 
-.dashboard-contentPage .container-fluid,
-.dashboard-contentPage .panel,
-.dashboard-contentPage .panel-heading,
-.dashboard-contentPage .panel-body,
-.dashboard-contentPage .table-responsive,
-.dashboard-contentPage .table-responsive .table {
-    background: transparent !important;
-    color: #fff !important;
+.dashboard-contentPage {
+  margin-left: 170px;
+  padding: 30px;
+  width: calc(100% - 170px);
+  box-sizing: border-box;
+  min-height: 100vh;
+  background-color: #1e1f28;
 }
-.dashboard-contentPage .panel-success .panel-heading {
-    background-color: #5cb85c !important;
-    color:             #fff    !important;
+
+/* Encabezado */
+.page-header h1 {
+  font-size: 28px;
+  color: #00e5ff;
+  text-shadow: 1px 1px 6px #000;
+  margin-bottom: 10px;
 }
-.dashboard-contentPage .table-responsive .table th,
-.dashboard-contentPage .table-responsive .table td {
-    border-color: #444 !important;
+
+.lead {
+  font-size: 1.1rem;
+  color: #ccc;
+  margin-bottom: 30px;
+}
+
+/* Botones resaltados */
+.breadcrumb-tabs .btn {
+  font-weight: bold;
+  color: #fff !important;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background .3s;
+}
+
+.breadcrumb-tabs .btn-info {
+  background-color: #0288d1 !important;
+  border: 1px solid #0277bd !important;
+}
+
+.breadcrumb-tabs .btn-info:hover {
+  background-color: #039be5 !important;
+}
+
+.breadcrumb-tabs .btn-success {
+  background-color: #43a047 !important;
+  border: 1px solid #388e3c !important;
+}
+
+.breadcrumb-tabs .btn-success:hover {
+  background-color: #4caf50 !important;
+}
+
+.breadcrumb-tabs li {
+  margin-right: 10px;
+}
+
+/* Panel contenedor de tabla */
+.panel {
+  background: #2c2d3f;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  border: 1px solid #3c3d4f;
+  overflow-x: auto;
+}
+
+.panel-heading {
+  background-color: #43a047 !important;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+  font-size: 17px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding: 12px 15px;
+}
+
+.panel-body {
+  padding: 20px;
+}
+
+/* Tabla adaptativa */
+.table-responsive {
+  border-radius: 8px;
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  min-width: 900px; /* obliga espacio horizontal mínimo */
+}
+
+.table th, .table td {
+  text-align: center;
+  vertical-align: middle;
+  background-color: transparent !important;
+  color: #fff;
+  border: 1px solid #444;
+}
+
+/* Hover */
+.table-hover tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Paginación */
+.pagination > li > a, 
+.pagination > li > span {
+  background-color: #2e2f3f;
+  border: 1px solid #555;
+  color: #fff;
+  font-weight: bold;
+}
+.pagination > .active > a {
+  background-color: #03a9f4 !important;
+  border-color: #0288d1 !important;
+  color: #fff;
 }
 </style>
+
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">

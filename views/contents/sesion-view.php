@@ -40,27 +40,138 @@ if (in_array($userType, ['Administrador','Docente'])
 // 6) Listar sesiones
 $sesiones = $insSesion->list_sesiones_controller($cursoId);
 ?>
-
 <style>
-.dashboard-contentPage { margin-left:170px; padding:20px; }
-.course-sessions { display:flex; gap:1rem; flex-wrap:wrap; }
-.session-card {
-  background:#fff; border-radius:6px; overflow:hidden;
-  width:200px; box-shadow:0 2px 6px rgba(0,0,0,0.2);
-}
-.session-card .header {
-  background:#b71c1c; color:#fff; padding:1rem;
-  text-align:center;
-}
-.session-card .body {
-  padding:0.8rem; font-size:0.9rem;
-}
-.session-card .body a {
-  display:flex; align-items:center; margin:0.4rem 0;
-  color:#333; text-decoration:none;
-}
-.session-card .body a i { margin-right:0.5rem; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1f28;
+    color: #fff;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .dashboard-contentPage {
+    margin-left: 170px;
+    padding: 30px;
+    background-color: #1e1f28;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 1px 1px 6px #000;
+    margin-bottom: 10px;
+  }
+
+  .lead {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin-bottom: 30px;
+  }
+
+  .btn-info {
+    background-color: #03a9f4;
+    border-color: #0288d1;
+    color: #fff;
+  }
+
+  .btn-info:hover {
+    background-color: #0288d1;
+  }
+
+  .panel {
+    background: #2c2d3f;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3c3d4f;
+    color: #fff;
+  }
+
+  .panel-heading {
+    background: #43a047 !important;
+    color: #fff;
+    font-weight: bold;
+    font-size: 17px;
+    text-align: center;
+    padding: 12px 15px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  .form-control {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #555;
+    color: #fff;
+  }
+
+  .course-sessions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: flex-start;
+  }
+
+  .session-card {
+    background: #2a2c3b;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    width: 250px;
+    transition: transform 0.3s ease;
+  }
+
+  .session-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .session-card .header {
+    background: #b71c1c;
+    color: #fff;
+    padding: 16px;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .session-card .header small {
+    display: block;
+    font-weight: normal;
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  .session-card .body {
+    padding: 15px;
+  }
+
+  .session-card .body a {
+    display: block;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    background: #333;
+    border-radius: 5px;
+    color: #fff;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .session-card .body a:hover {
+    background: #444;
+  }
+
+  .session-card .body a i {
+    margin-right: 6px;
+  }
 </style>
+
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
