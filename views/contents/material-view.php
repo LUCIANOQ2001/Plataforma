@@ -1,24 +1,20 @@
-<?php
+<?php 
 // views/contents/material-view.php
 
-// 1) Control de acceso: permitimos Admin, Docente y Estudiante
 if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiante'])) {
     echo (new loginController())->login_session_force_destroy_controller();
     exit;
 }
 
-// 2) Controladores
 require_once __DIR__ . '/../../controllers/sesionController.php';
 require_once __DIR__ . '/../../controllers/materialController.php';
 
 $insSesion   = new sesionController();
 $insMaterial = new materialController();
 
-// 3) Obtenemos ID de sesión de la URL: /material/{sesionId}/
 $parts     = explode("/", trim($_GET['views'], "/"));
 $sesionId  = intval($parts[1]);
 
-// 4) Datos de la sesión (para el título)
 $dataSes = $insSesion->get_sesion_by_id_controller($sesionId);
 if($dataSes->rowCount()===0){
     echo '<div class="alert alert-danger">Sesión no encontrada.</div>';
@@ -26,7 +22,6 @@ if($dataSes->rowCount()===0){
 }
 $ses = $dataSes->fetch(PDO::FETCH_ASSOC);
 
-// 5) Procesar POST (añadir o borrar), sólo Admin/Docente
 $alert = '';
 if(in_array($_SESSION['userType'], ['Administrador','Docente']) 
    && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -36,33 +31,90 @@ if(in_array($_SESSION['userType'], ['Administrador','Docente'])
     if(isset($_POST['delete_id'])){
         $alert = $insMaterial->delete_material_controller(intval($_POST['delete_id']));
     }
-    // PRG: evitar reenvío
     echo "<script>location.replace(location.pathname);</script>";
     exit;
 }
 
-// 6) Listar materiales
 $materials = $insMaterial->list_materials_controller($sesionId);
 ?>
 
 <style>
-  .dashboard-contentPage { margin-left:170px; padding:20px; }
-  .material-list {
-    max-height: 400px;
-    overflow-y: auto;
-    margin-top:1rem;
+  html, body {
+    background-color: #1e1f28;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
   }
-  .material-list table { width:100%; }
-  .material-list th, .material-list td {
-    padding: 0.8rem; border-bottom:1px solid #444;
-    color:#fff;
+  .dashboard-contentPage {
+    margin-left: 170px;
+    padding: 30px;
+    width: calc(100% - 170px);
+    background-color: #1e1f28;
+    box-sizing: border-box;
   }
-  .material-list td a { color:#0af; text-decoration:none; }
-  .material-list td .actions i {
-    cursor:pointer; margin-left:0.5rem; color:#0af;
+  .page-header h1 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 1px 1px 6px #000;
   }
-  /* botón y formulario de docente/admin */
-  #formAdd { display:none; margin-top:1rem; }
+  .lead {
+    color: #ccc;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+  }
+  .panel {
+    background: #2c2d3f;
+    border: 1px solid #3c3d4f;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+  }
+  .panel-heading {
+    background-color: #00bcd4;
+    color: #fff;
+    font-weight: bold;
+    font-size: 17px;
+    text-align: center;
+    padding: 12px 15px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  .panel-body {
+    padding: 20px;
+  }
+  .form-control, .control-label, textarea {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid #555 !important;
+    color: #fff !important;
+  }
+  .btn-info, .btn-success, .btn-danger {
+    color: #fff !important;
+    font-weight: bold;
+  }
+  .btn-info {
+    background-color: #0288d1 !important;
+    border: 1px solid #0277bd !important;
+  }
+  .btn-success {
+    background-color: #388e3c !important;
+    border: 1px solid #2e7d32 !important;
+  }
+  .btn-danger {
+    background-color: #d32f2f !important;
+    border: 1px solid #b71c1c !important;
+  }
+  .table {
+    color: #fff;
+    border-color: #444;
+    margin-top: 1rem;
+  }
+  .table th, .table td {
+    border: 1px solid #444;
+    text-align: center;
+  }
 </style>
 
 <section class="dashboard-contentPage">
@@ -79,14 +131,12 @@ $materials = $insMaterial->list_materials_controller($sesionId);
 
   <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
   <div class="container-fluid">
-    <!-- 7) Botón Nuevo Material -->
     <button class="btn btn-info btn-raised"
             onclick="document.getElementById('formAdd').style.display='block'">
       <i class="zmdi zmdi-plus"></i> Nuevo Material
     </button>
   </div>
 
-  <!-- 8) Formulario de subida (oculto por defecto) -->
   <div class="container-fluid" id="formAdd">
     <div class="panel panel-info">
       <div class="panel-heading">
@@ -103,9 +153,9 @@ $materials = $insMaterial->list_materials_controller($sesionId);
               </div>
             </div>
             <div class="col-sm-6">
-              <div class="form-group">
-                <label>Archivo *</label>
-                <input name="archivo" type="file" required>
+              <div class="form-group label-floating">
+                <label class="control-label">Archivo *</label>
+                <input name="archivo" class="form-control" type="file" required>
               </div>
             </div>
           </div>
@@ -124,52 +174,57 @@ $materials = $insMaterial->list_materials_controller($sesionId);
   </div>
   <?php endif; ?>
 
-  <!-- 9) Listado de materiales (visible para todos) -->
-  <div class="container-fluid material-list">
-    <table>
-      <thead>
-        <tr>
-          <th>Archivo</th>
-          <th>Fecha</th>
-          <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
-            <th>Acciones</th>
-          <?php endif; ?>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if(empty($materials)): ?>
-          <tr>
-            <td colspan="<?php echo in_array($_SESSION['userType'], ['Administrador','Docente'])?3:2; ?>"
-                class="text-center">
-              No hay material aún.
-            </td>
-          </tr>
-        <?php else: foreach($materials as $m): ?>
-          <tr>
-            <td>
-              <i class="zmdi zmdi-folder"></i>
-              <a href="<?php echo SERVERURL.'uploads/material/'.$m['Archivo']; ?>"
-                 download="<?php echo htmlspecialchars($m['Archivo']); ?>">
-                <?php echo htmlspecialchars($m['Titulo']); ?>
-              </a>
-            </td>
-            <td><?php echo date("d/m/Y H:i", strtotime($m['Fecha'])); ?></td>
-            <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
-            <td class="actions">
-              <!-- Editar: podrías abrir un modal similar al Add -->
-              <i class="zmdi zmdi-edit" title="Editar"></i>
-              <!-- Borrar -->
-              <form method="POST" style="display:inline">
-                <input type="hidden" name="delete_id" value="<?php echo $m['id']; ?>">
-                <i class="zmdi zmdi-delete" title="Eliminar"
-                   onclick="if(confirm('¿Eliminar este material?')) this.parentElement.submit();">
-                </i>
-              </form>
-            </td>
-            <?php endif; ?>
-          </tr>
-        <?php endforeach; endif; ?>
-      </tbody>
-    </table>
+  <div class="container-fluid">
+    <div class="panel panel-success">
+      <div class="panel-heading">
+        <h3 class="panel-title"><i class="zmdi zmdi-folder"></i> Lista de Material</h3>
+      </div>
+      <div class="panel-body">
+        <div class="table-responsive">
+          <table class="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>Archivo</th>
+                <th>Fecha</th>
+                <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
+                  <th>Acciones</th>
+                <?php endif; ?>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if(empty($materials)): ?>
+                <tr>
+                  <td colspan="<?php echo in_array($_SESSION['userType'], ['Administrador','Docente'])?3:2; ?>">
+                    No hay material aún.
+                  </td>
+                </tr>
+              <?php else: foreach($materials as $m): ?>
+                <tr>
+                  <td>
+                    <i class="zmdi zmdi-folder"></i>
+                    <a href="<?php echo SERVERURL.'uploads/material/'.$m['Archivo']; ?>"
+                       download="<?php echo htmlspecialchars($m['Archivo']); ?>">
+                      <?php echo htmlspecialchars($m['Titulo']); ?>
+                    </a>
+                  </td>
+                  <td><?php echo date("d/m/Y H:i", strtotime($m['Fecha'])); ?></td>
+                  <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
+                  <td>
+                    <form method="POST" style="display:inline">
+                      <input type="hidden" name="delete_id" value="<?php echo $m['id']; ?>">
+                      <button type="submit" class="btn btn-danger btn-sm btn-raised"
+                              onclick="return confirm('¿Eliminar este material?');">
+                        <i class="zmdi zmdi-delete"></i>
+                      </button>
+                    </form>
+                  </td>
+                  <?php endif; ?>
+                </tr>
+              <?php endforeach; endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

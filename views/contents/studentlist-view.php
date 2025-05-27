@@ -150,6 +150,19 @@ html, body {
   border-color: #0288d1 !important;
   color: #fff;
 }
+.btn-warning.btn-xs {
+  background-color: #ffa726;
+  color: #fff;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background 0.3s ease;
+  margin-left: 5px;
+}
+.btn-warning.btn-xs:hover {
+  background-color: #fb8c00;
+}
+
 </style>
 
 

@@ -1,56 +1,99 @@
 <?php if($_SESSION['userType'] === "Administrador"): ?>
 
-<!-- Inline CSS para quitar fondos blancos, respetar sidebar y márgenes -->
+<!-- Estilos modernos oscuros unificados -->
 <style>
-  /* 1) Ajusta aquí el ancho de tu sidebar */
-  .dashboard-contentPage {
-    margin-left: 170px;               /* ← ancho real del sidebar */
-    padding: 20px;                    /* Espacio interior */
-    width: calc(100% - 270px);        /* Resto del ancho */
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1e1f28;
+    color: #fff;
+    overflow-x: hidden;
     box-sizing: border-box;
-    overflow: auto;                   /* Scroll interno si es necesario */
-    background: transparent;          /* Nada de fondo blanco */
-    color: #fff;                      /* Texto blanco */
-  }
-  .dashboard-contentPage.full-box { width: auto; }
-
-  /* Anula fondos blancos de containers, paneles, etc. */
-  .dashboard-contentPage .container-fluid,
-  .dashboard-contentPage .breadcrumb-tabs,
-  .dashboard-contentPage .panel,
-  .dashboard-contentPage .panel-heading,
-  .dashboard-contentPage .panel-body,
-  .dashboard-contentPage fieldset,
-  .dashboard-contentPage legend {
-    background-color: transparent !important;
-    color:            #fff        !important;
   }
 
-  /* Inputs y labels con fondo tenue y bordes visibles */
-  .dashboard-contentPage .form-control,
-  .dashboard-contentPage .control-label {
-    background: rgba(255,255,255,0.05) !important;
-    border:     1px solid #555      !important;
-    color:      #fff                !important;
+  .dashboard-contentPage {
+    margin-left: 170px;
+    padding: 30px;
+    min-height: 100vh;
+    width: calc(100% - 170px);
+    background-color: #1e1f28;
+    box-sizing: border-box;
   }
 
-  /* Breadcrumb “Nuevo / Lista” contraste */
-  .dashboard-contentPage .breadcrumb-tabs li { margin-right: 8px; }
-  .dashboard-contentPage .breadcrumb-tabs a.btn-info {
+  .page-header h1 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 1px 1px 6px #000;
+    margin-bottom: 10px;
+  }
+
+  .lead {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin-bottom: 30px;
+  }
+
+  .breadcrumb-tabs .btn {
+    font-weight: bold;
+    color: #fff !important;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background .3s;
+  }
+
+  .breadcrumb-tabs .btn-info {
     background-color: #0288d1 !important;
-    border-color:     #0277bd !important;
-    color:            #fff    !important;
-  }
-  .dashboard-contentPage .breadcrumb-tabs a.btn-success {
-    background-color: #388e3c !important;
-    border-color:     #2e7d32 !important;
-    color:            #fff    !important;
+    border: 1px solid #0277bd !important;
   }
 
-  /* Mantén encabezado del panel-info en azul claro */
-  .dashboard-contentPage .panel-info .panel-heading {
+  .breadcrumb-tabs .btn-success {
+    background-color: #43a047 !important;
+    border: 1px solid #388e3c !important;
+  }
+
+  .breadcrumb-tabs .btn-info:hover {
+    background-color: #039be5 !important;
+  }
+
+  .breadcrumb-tabs .btn-success:hover {
+    background-color: #4caf50 !important;
+  }
+
+  .panel {
+    background: #2c2d3f;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3c3d4f;
+  }
+
+  .panel-heading {
     background-color: #00bcd4 !important;
-    color:            #fff    !important;
+    color: #fff;
+    font-weight: bold;
+    font-size: 17px;
+    text-align: center;
+    padding: 12px 15px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  .form-control, .control-label {
+    background: rgba(239, 235, 235, 0.05) !important;
+    border: 1px solid #555 !important;
+    color: #fff !important;
+  }
+
+  fieldset, legend {
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+    color: #efebeb;
   }
 </style>
 
@@ -86,13 +129,9 @@
   <?php 
     require_once "./controllers/studentController.php";
     $insStudent = new studentController();
-
-    // Si llegan datos por POST, los procesamos
     if($_SERVER['REQUEST_METHOD']==='POST'){
       echo $insStudent->add_student_controller($_POST);
     }
-
-    // Cargamos todos los cursos para el <select multiple>
     $cursosList = $insStudent->list_cursos_controller();
   ?>
 
@@ -113,27 +152,19 @@
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <label class="control-label">Nombres *</label>
-                      <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}"
-                             class="form-control" type="text" name="name"
-                             value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>"
-                             required maxlength="30">
+                      <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}" class="form-control" type="text" name="name" value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>" required maxlength="30">
                     </div>
                   </div>
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <label class="control-label">Apellidos *</label>
-                      <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}"
-                             class="form-control" type="text" name="lastname"
-                             value="<?php echo htmlspecialchars($_POST['lastname'] ?? ''); ?>"
-                             required maxlength="30">
+                      <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}" class="form-control" type="text" name="lastname" value="<?php echo htmlspecialchars($_POST['lastname'] ?? ''); ?>" required maxlength="30">
                     </div>
                   </div>
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <label class="control-label">Email</label>
-                      <input class="form-control" type="email" name="email"
-                             value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
-                             maxlength="70">
+                      <input class="form-control" type="email" name="email" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" maxlength="70">
                     </div>
                   </div>
                 </div>
@@ -145,10 +176,7 @@
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <label class="control-label">Nombre de usuario *</label>
-                      <input pattern="[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]{1,15}"
-                             class="form-control" type="text" name="username"
-                             value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
-                             required maxlength="15">
+                      <input pattern="[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]{1,15}" class="form-control" type="text" name="username" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required maxlength="15">
                     </div>
                   </div>
                   <div class="col-sm-6">
@@ -168,21 +196,18 @@
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <label class="control-label">Contraseña *</label>
-                      <input class="form-control" type="password" name="password1"
-                             required maxlength="70">
+                      <input class="form-control" type="password" name="password1" required maxlength="70">
                     </div>
                   </div>
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <label class="control-label">Repita la contraseña *</label>
-                      <input class="form-control" type="password" name="password2"
-                             required maxlength="70">
+                      <input class="form-control" type="password" name="password2" required maxlength="70">
                     </div>
                   </div>
                 </div>
               </fieldset>
 
-              <!-- 6) Selección de cursos -->
               <fieldset>
                 <legend><i class="zmdi zmdi-book"></i> Cursos asignados *</legend>
                 <div class="form-group">

@@ -1,69 +1,85 @@
 <?php 
-// Sólo Administradores y Docentes pueden ver esta página
+// Solo Administradores y Docentes pueden ver esta página
 if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])): 
 
-  // Cargamos el controlador de cursos para poblar el <select>
   require_once __DIR__ . '/../../controllers/cursoController.php';
   $insCurso     = new cursoController();
   $todosCursos  = $insCurso->list_cursos_controller();
-
   $dateNow = date("Y-m-d");
 ?>
 
-<!-- Estilos inline actualizados -->
 <style>
-  /* 1) Desplaza todo el contenido para no tapar el sidebar (ancho = 270px) */
-  .dashboard-contentPage {
-    margin-left: 170px;            
-    padding: 20px;
-    width: calc(100% - 270px);
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1f28;
+    color: #fff;
+    width: 100%; height: 100%;
+    overflow-x: hidden;
     box-sizing: border-box;
-    overflow: auto;
   }
-  .dashboard-contentPage.full-box { width: auto; }
-
-  /* 2) Haz transparentes los fondos de los contenedores y paneles */
-  .dashboard-contentPage .container-fluid,
-  .dashboard-contentPage .panel,
-  .dashboard-contentPage .panel-heading,
-  .dashboard-contentPage .panel-body,
-  .dashboard-contentPage fieldset {
-    background-color: transparent !important;
+  .dashboard-contentPage {
+    margin-left: 170px;
+    padding: 30px;
+    width: calc(100% - 170px);
+    box-sizing: border-box;
+    background-color: #1e1f28;
+  }
+  .page-header h1 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 1px 1px 6px #000;
+    margin-bottom: 10px;
+  }
+  .lead {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin-bottom: 30px;
+  }
+  .breadcrumb-tabs .btn {
+    font-weight: bold;
+    color: #fff !important;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background .3s;
+  }
+  .breadcrumb-tabs .btn-info {
+    background-color: #0288d1 !important;
+    border: 1px solid #0277bd !important;
+  }
+  .breadcrumb-tabs .btn-success {
+    background-color: #388e3c !important;
+    border: 1px solid #2e7d32 !important;
+  }
+  .breadcrumb-tabs li { margin-right: 10px; }
+  .panel {
+    background: #2c2d3f;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3c3d4f;
+  }
+  .panel-heading {
+    background-color: #00bcd4 !important;
+    color: #fff;
+    font-weight: bold;
+    font-size: 17px;
+    padding: 12px 15px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+  .panel-body {
+    padding: 20px;
+  }
+  .form-control, .control-label, textarea {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid #555 !important;
     color: #fff !important;
   }
-
-  /* 3) Inputs y textarea: bordes claros y texto blanco */
-  .dashboard-contentPage .form-control,
-  .dashboard-contentPage textarea {
-    background: rgba(255,255,255,0.05) !important;
-    border: 1px solid #555      !important;
-    color:  #fff                 !important;
-  }
-
-  /* 4) Encabezado del panel-info conserva su color */
-  .dashboard-contentPage .panel-info .panel-heading {
-    background-color: #5bc0de !important;
-    color:             #fff   !important;
-  }
-
-  /* 5) Breadcrumb (Nueva / Lista): quita fondo blanco y mejora contraste */
-  .dashboard-contentPage .breadcrumb-tabs {
-    background: transparent !important;
-    padding:    0          !important;
-    margin:     0 0 20px 0  !important;
-  }
-  .dashboard-contentPage .breadcrumb-tabs li a.btn-info {
-    background-color: #0288d1 !important;  /* azul más intenso */
-    border-color:     #0277bd !important;
-    color:            #fff    !important;
-  }
-  .dashboard-contentPage .breadcrumb-tabs li a.btn-success {
-    background-color: #388e3c !important;  /* verde más intenso */
-    border-color:     #2e7d32 !important;
-    color:            #fff    !important;
-  }
-  .dashboard-contentPage .breadcrumb-tabs li {
-    margin-right: 10px;
+    fieldset, legend {
+    border: none;
+    padding: 0;
+    margin-bottom: 20px;
+    color: #efebeb;
   }
 </style>
 
@@ -95,8 +111,6 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
     </ul>
   </div>
 
-  <?php $dateNow = date("Y-m-d"); ?>
-
   <div class="container-fluid">
     <div class="row">
       <div class="col-xs-12">
@@ -116,7 +130,6 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
                 <legend><i class="zmdi zmdi-videocam"></i> Datos de la clase</legend>
                 <div class="row">
 
-                  <!-- ** NUEVO: Selector de Curso ** -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Curso *</span>
@@ -131,7 +144,6 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
                     </div>
                   </div>
 
-                  <!-- Título -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Título *</span>
@@ -139,7 +151,6 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
                     </div>
                   </div>
 
-                  <!-- Tutor o Docente -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Tutor o Docente *</span>
@@ -147,7 +158,6 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
                     </div>
                   </div>
 
-                  <!-- Fecha -->
                   <div class="col-sm-6">
                     <div class="form-group label-floating">
                       <span class="control-label">Fecha *</span>
@@ -156,7 +166,6 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
                     </div>
                   </div>
 
-                  <!-- Código del vídeo -->
                   <div class="col-xs-12">
                     <div class="form-group label-floating">
                       <label class="control-label">Código del vídeo *</label>
