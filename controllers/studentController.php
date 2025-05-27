@@ -162,6 +162,10 @@ class studentController {
                                <i class="zmdi zmdi-delete"></i>
                              </button>
                            </form>
+                           <a href="'.SERVERURL.'studentinfo/'.htmlspecialchars($r['Codigo']).'/" 
+                                class="btn btn-warning btn-xs" title="Editar">
+                                <i class="zmdi zmdi-edit"></i>
+                            </a>
                          </td>'
                        .'</tr>';
             }
@@ -182,4 +186,37 @@ class studentController {
 
         return $html;
     }
+    public function data_student_controller(string $tipo, string $codigo) {
+        if ($tipo !== "Only") {
+            return false;
+        }
+
+        $stmt = $this->pdo->prepare("SELECT * FROM estudiante WHERE Codigo = ?");
+        $stmt->execute([$codigo]);
+        return $stmt;
+    }
+    public function update_student_controller(): string {
+        $codigo   = $_POST['code'] ?? '';
+        $nombres  = trim($_POST['name'] ?? '');
+        $apellidos= trim($_POST['lastname'] ?? '');
+        $email    = trim($_POST['email'] ?? '');
+
+        if (!$codigo || !$nombres || !$apellidos) {
+            return '<div class="alert alert-warning text-center">Faltan datos obligatorios.</div>';
+        }
+
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE estudiante 
+                SET Nombres = ?, Apellidos = ?, Email = ?
+                WHERE Codigo = ?
+            ");
+            $stmt->execute([$nombres, $apellidos, $email, $codigo]);
+
+            return '<div class="alert alert-success text-center">Datos actualizados correctamente.</div>';
+        } catch (PDOException $e) {
+            return '<div class="alert alert-danger text-center">Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    }
+    
 }
