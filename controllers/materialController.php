@@ -22,25 +22,35 @@ class materialController {
         $stmt->execute([$sesionId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
-    /** Añadir un material a una sesión */
+/** Añadir un material a una sesión */
     public function add_material_controller(int $sesionId): string {
-        if(empty($_FILES['archivo']['name']) || empty($_POST['titulo'])) {
+        if (empty($_FILES['archivo']['name']) || empty($_POST['titulo'])) {
             return '<div class="alert alert-warning text-center">Título y archivo son obligatorios.</div>';
         }
 
-        // carpeta destino
-        $uploadDir = __DIR__ . '/../../views/assets/material/';
-        if(!is_dir($uploadDir)) mkdir($uploadDir,0755,true);
+        // Ruta de destino
+        $uploadDir = __DIR__ . '/../attachments/material/';
 
-        $tmp  = $_FILES['archivo']['tmp_name'];
-        $name = time() . '_' . basename($_FILES['archivo']['name']);
-        $dest = $uploadDir . $name;
+        // Asegura que el directorio exista
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
 
-        if(!move_uploaded_file($tmp, $dest)) {
+        // Limpieza del nombre del archivo original
+        $originalName = basename($_FILES['archivo']['name']);
+        $cleanName    = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', $originalName);
+        $filename     = time() . '_' . $cleanName;
+
+        // Ruta destino completa
+        $destPath = $uploadDir . $filename;
+
+        // Verifica que haya tmp_name y mueve el archivo
+        if (!is_uploaded_file($_FILES['archivo']['tmp_name']) || 
+            !move_uploaded_file($_FILES['archivo']['tmp_name'], $destPath)) {
             return '<div class="alert alert-danger text-center">Error subiendo el archivo.</div>';
         }
 
+        // Guardar en base de datos
         $stmt = $this->pdo->prepare("
             INSERT INTO material (sesion_id, Titulo, Archivo)
             VALUES (?, ?, ?)
@@ -48,11 +58,12 @@ class materialController {
         $stmt->execute([
             $sesionId,
             trim($_POST['titulo']),
-            $name
+            $filename
         ]);
 
-        return '<div class="alert alert-success text-center">Material agregado.</div>';
+        return '<div class="alert alert-success text-center">Material agregado correctamente.</div>';
     }
+
 
     /** Borrar un material por su ID */
     public function delete_material_controller(int $materialId): string {

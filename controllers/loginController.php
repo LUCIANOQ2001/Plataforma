@@ -46,6 +46,7 @@ class loginController extends loginModel {
                 $_SESSION['userName']      = $row['Usuario'];
                 $_SESSION['userType']      = $row['Tipo'];
                 $_SESSION['userKey']       = $row['Codigo'];
+                $_SESSION['userCode']      = $row['Codigo'];   // <-- AGREGAR esta línea
                 $_SESSION['userPrivilege'] = $row['Privilegio'];
                 $_SESSION['userToken']     = md5(uniqid(mt_rand(), true));
 
