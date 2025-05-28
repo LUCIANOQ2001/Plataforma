@@ -99,10 +99,14 @@
 <section class="dashboard-contentPage">
   <?php
     require_once __DIR__ . '/../../controllers/asistenciaController.php';
-    $insAsist = new asistenciaController();
-    $codigoEst = $_SESSION['userKey'] ?? '';
-    $records = $insAsist->get_history_by_student_controller($codigoEst);
+    $insAsist   = new asistenciaController();
+    $codigoEst  = $_SESSION['userCode'] ?? $_SESSION['userKey'] ?? '';
+    $records    = $insAsist->get_history_by_student_controller($codigoEst);
   ?>
+      <!-- Volver -->
+      <a href="<?php echo SERVERURL."asistencialist/{$sesionId}/"; ?>" class="btn btn-secondary btn-sm btn-back">
+        <i class="zmdi zmdi-arrow-left"></i> Volver
+      </a>
 
   <div class="container-fluid">
     <div class="page-header text-center">
@@ -111,7 +115,7 @@
       </h1>
     </div>
     <p class="lead">
-      Aquí puedes revisar todas tus asistencias registradas.
+      Aquí puedes revisar todas tus asistencias registradas, con su curso y sesión correspondientes.
     </p>
   </div>
 
@@ -126,27 +130,31 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Clase</th>
+                <th>Curso</th>
+                <th>Sesión</th>
                 <th>Fecha</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody>
-              <?php if($records): $i = 1; foreach($records as $row): ?>
+              <?php if(!empty($records)): $i = 1; foreach($records as $row): ?>
               <tr>
                 <td><?php echo $i++; ?></td>
-                <td><?php echo htmlspecialchars($row['Titulo']); ?></td>
-                <td><?php echo htmlspecialchars($row['fecha']); ?></td>
+                <td><?php echo htmlspecialchars($row['Curso']); ?></td>
+                <td><?php echo htmlspecialchars($row['Sesion']); ?></td>
+                <td><?php echo htmlspecialchars($row['Fecha']); ?></td>
                 <td>
                   <span class="label label-<?php 
-                    echo $row['estado']=='presente' ? 'success' : ($row['estado']=='ausente' ? 'danger' : 'warning'); ?>">
-                    <?php echo ucfirst($row['estado']); ?>
+                    echo $row['Estado']=='presente'   ? 'success' 
+                         : ($row['Estado']=='ausente'     ? 'danger' : 'warning');
+                  ?>">
+                    <?php echo ucfirst($row['Estado']); ?>
                   </span>
                 </td>
               </tr>
               <?php endforeach; else: ?>
               <tr>
-                <td colspan="4">No se encontraron registros de asistencia.</td>
+                <td colspan="5">No se encontraron registros de asistencia.</td>
               </tr>
               <?php endif; ?>
             </tbody>
@@ -158,6 +166,5 @@
 </section>
 
 <?php else: 
-  $logout2 = new loginController();
-  echo $logout2->login_session_force_destroy_controller();
+  echo (new loginController())->login_session_force_destroy_controller();
 endif; ?>

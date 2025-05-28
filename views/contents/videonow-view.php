@@ -23,7 +23,7 @@ body {
 
 /* === Contenedor general === */
 .content-wrapper {
-  margin-left: 180px;               /* no tapar el sidebar */
+  margin-left: 205px;               /* no tapar el sidebar */
   padding: 30px;
   background-color: #1e1f28;
   color: #fff;

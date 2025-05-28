@@ -202,11 +202,12 @@ $materials = $insMaterial->list_materials_controller($sesionId);
                 <tr>
                   <td>
                     <i class="zmdi zmdi-folder"></i>
-                    <a href="<?php echo SERVERURL.'uploads/material/'.$m['Archivo']; ?>"
-                       download="<?php echo htmlspecialchars($m['Archivo']); ?>">
+                    <a href="<?php echo SERVERURL . 'attachments/material/' . $m['Archivo']; ?>" 
+                      target="_blank">
                       <?php echo htmlspecialchars($m['Titulo']); ?>
                     </a>
                   </td>
+
                   <td><?php echo date("d/m/Y H:i", strtotime($m['Fecha'])); ?></td>
                   <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
                   <td>

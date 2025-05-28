@@ -13,7 +13,7 @@ $materialDisponible       = $insMaterial->count_material_by_estudiante($codigoEs
 
 <style>
 .dashboard-container {
-    margin-left: 170px;
+    margin-left: 230px;
     padding: 30px 40px;
     max-width: calc(100vw - 170px);  /* ← evitar desbordar el sidebar */
     overflow-x: hidden;

@@ -167,8 +167,8 @@ if($userType === 'Estudiante'){
                 <a href="<?php echo SERVERURL."anunciocurso/{$c['id']}/"; ?>">
                   <i class="zmdi zmdi-notifications"></i> Anuncios
                 </a>
-                <a href="<?php echo SERVERURL."consultascourse/{$c['id']}/"; ?>">
-                  <i class="zmdi zmdi-comment-text"></i> Consultas
+                <a href="<?php echo SERVERURL."asistencia/{$c['id']}/"; ?>">
+                  <i class="zmdi zmdi-comment-text"></i> Asistencias
                 </a>
                 <a href="<?php echo SERVERURL."reportecurso/{$c['id']}/"; ?>">
                   <i class="zmdi zmdi-chart"></i> Reporte de notas

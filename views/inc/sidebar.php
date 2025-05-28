@@ -96,7 +96,6 @@
           </a>
           <ul class="list-unstyled full-box submenu">
             <li><a href="<?php echo SERVERURL; ?>studentlist/">Listado de Estudiantes</a></li>
-            <li><a href="<?php echo SERVERURL; ?>asistencia/">Registro de Asistencias</a></li>
           </ul>
         </li>
 

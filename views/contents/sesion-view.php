@@ -267,6 +267,9 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
               <a href="<?php echo SERVERURL."foro/{$s['id']}/"; ?>">
                 <i class="zmdi zmdi-comments"></i> Foro
               </a>
+              <a href="<?php echo SERVERURL."asistencia/{$s['id']}/"; ?>">
+                <i class="zmdi zmdi-comment-text"></i> Asistencias
+              </a>
             </div>
           </div>
         <?php endforeach; ?>
