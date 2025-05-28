@@ -2,9 +2,12 @@
 // views/contents/miscursos-view.php
 
 // Sólo Docentes, Administradores y Estudiantes pueden ver esta página
-if(!in_array($_SESSION['userType'] ?? '', ['Docente','Administrador','Estudiante'])){
-  echo (new loginController())->login_session_force_destroy_controller();
-  exit;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!in_array($_SESSION['userType'] ?? '', ['Docente','Administrador','Estudiante'])) {
+    echo (new loginController())->login_session_force_destroy_controller();
+    exit;
 }
 
 // Controlador de cursos
@@ -15,25 +18,20 @@ $userType = $_SESSION['userType'];
 $userKey  = $_SESSION['userKey'];
 
 // Según el rol, obtenemos el listado apropiado
-if($userType === 'Estudiante'){
-  $cursos = $insCurso->list_cursos_estudiante_controller($userKey);
-  $subtitle = "Aquí tienes los cursos en los que estás inscrito. Pasa el cursor sobre una tarjeta para ver sus opciones.";
+if ($userType === 'Estudiante') {
+    $cursos   = $insCurso->list_cursos_estudiante_controller($userKey);
+    $subtitle = "Aquí tienes los cursos en los que estás inscrito. Pasa el cursor sobre una tarjeta para ver sus opciones.";
 } else {
-  $cursos = $insCurso->list_mis_cursos_controller($userKey);
-  $subtitle = "Aquí tienes los cursos a tu cargo. Pasa el cursor sobre una tarjeta para ver sus opciones.";
+    $cursos   = $insCurso->list_mis_cursos_controller($userKey);
+    $subtitle = "Aquí tienes los cursos a tu cargo. Pasa el cursor sobre una tarjeta para ver sus opciones.";
 }
 ?>
-
 <style>
   html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    box-sizing: border-box;
+    margin: 0; padding: 0;
+    background-color: #1e1f28; color: #fff;
+    width: 100%; height: 100%;
+    overflow-x: hidden; box-sizing: border-box;
   }
 
   .dashboard-contentPage {
@@ -46,18 +44,14 @@ if($userType === 'Estudiante'){
   }
 
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
+    font-size: 28px; color: #00e5ff;
     text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
-    text-align: center;
+    margin-bottom: 10px; text-align: center;
   }
 
   .lead {
-    font-size: 1.1rem;
-    color: #ccc;
-    text-align: center;
-    max-width: 780px;
+    font-size: 1.1rem; color: #ccc;
+    text-align: center; max-width: 780px;
     margin: 0 auto 30px auto;
   }
 
@@ -70,13 +64,14 @@ if($userType === 'Estudiante'){
   }
 
   .course-card {
+    position: relative;          /* para contener el dropdown */
     background: #2a2c3b;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    overflow: hidden;
+    /* quitamos overflow:hidden para que el dropdown no se corte */
+    overflow: visible;
     transition: transform 0.2s ease-in-out;
   }
-
   .course-card:hover {
     transform: translateY(-5px);
   }
@@ -93,25 +88,23 @@ if($userType === 'Estudiante'){
   }
 
   .course-title {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 0.25rem;
-    color: #29b6f6;
+    font-size: 1.1rem; font-weight: bold;
+    margin-bottom: 0.25rem; color: #29b6f6;
   }
 
   .course-subtitle {
-    font-size: 0.9rem;
-    color: #bbb;
+    font-size: 0.9rem; color: #bbb;
     margin-bottom: 0.5rem;
   }
 
   .course-dropdown {
+    position: absolute;
+    top: 100%; left: 0; right: 0;
     background: #333;
-    border-radius: 5px;
-    overflow: hidden;
+    border-radius: 0 0 5px 5px;
     display: none;
-    margin-top: 0.5rem;
-    box-shadow: inset 0 0 0 1px #444;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    z-index: 10;
   }
 
   .course-dropdown a {
@@ -127,6 +120,7 @@ if($userType === 'Estudiante'){
     background: #444;
   }
 
+  /* Ahora solo el dropdown de la tarjeta con hover se mostrará */
   .course-card:hover .course-dropdown {
     display: block;
   }
@@ -144,11 +138,11 @@ if($userType === 'Estudiante'){
   </div>
 
   <div class="container-fluid">
-    <?php if(empty($cursos)): ?>
+    <?php if (empty($cursos)): ?>
       <p class="text-center">No hay cursos para mostrar.</p>
     <?php else: ?>
       <div class="courses-grid">
-        <?php foreach($cursos as $c): ?>
+        <?php foreach ($cursos as $c): ?>
           <div class="course-card">
             <div class="course-header"
                  style="background-image:url('<?php echo SERVERURL;?>views/assets/img/cursito.jpg')">

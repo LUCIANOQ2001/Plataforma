@@ -2,6 +2,9 @@
 // views/contents/sesion-view.php
 
 // 1) Sólo usuarios autenticados (Admin, Docente o Estudiante)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiante'])) {
     echo (new loginController())->login_session_force_destroy_controller();
     exit;
@@ -29,7 +32,7 @@ $curso = $stmtCurso->fetch(PDO::FETCH_ASSOC);
 
 // 5) Procesar POST para creación de sesión (solo Admin/Docente)
 $alert = '';
-if (in_array($userType, ['Administrador','Docente']) 
+if (in_array($userType, ['Administrador','Docente'])
     && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $alert = $insSesion->add_sesion_controller($cursoId, $_POST);
     // PRG: evita reenvío
@@ -81,6 +84,13 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
 
   .btn-info:hover {
     background-color: #0288d1;
+  }
+
+  .btn-back-home {
+    background-color: #607d8b !important;
+    border-color:     #455a64 !important;
+    color:            #fff !important;
+    margin-bottom: 20px;
   }
 
   .panel {
@@ -172,9 +182,14 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
   }
 </style>
 
-
 <section class="dashboard-contentPage">
   <div class="container-fluid">
+    <!-- Botón Volver a Mis Cursos -->
+    <a href="<?php echo SERVERURL; ?>miscursos/"
+       class="btn btn-back-home btn-sm">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
+    </a>
+
     <div class="page-header">
       <h1 class="text-titles">
         <i class="zmdi zmdi-play-circle"></i>
@@ -241,7 +256,11 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
   <div class="container-fluid">
     <div class="course-sessions">
       <?php if (empty($sesiones)): ?>
-        <p>No hay sesiones aún. <?php if(in_array($userType,['Administrador','Docente'])): ?>Crea la primera arriba.<?php endif; ?></p>
+        <p>No hay sesiones aún. 
+           <?php if(in_array($userType,['Administrador','Docente'])): ?>
+             Crea la primera arriba.
+           <?php endif; ?>
+        </p>
       <?php else: ?>
         <?php foreach($sesiones as $s): ?>
           <div class="session-card">
