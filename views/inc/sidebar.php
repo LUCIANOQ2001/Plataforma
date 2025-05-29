@@ -163,8 +163,8 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiant
         </a>
       </li>
       <li>
-        <a href="<?= SERVERURL ?>material/">
-          <i class="zmdi zmdi-collection-text"></i> Material de curso
+        <a href="<?php echo SERVERURL; ?>materialcurso/<?php echo $c['id']; ?>/">
+          <i class="zmdi zmdi-collection-text zmdi-hc-fw"></i> Material de curso
         </a>
       </li>
 
