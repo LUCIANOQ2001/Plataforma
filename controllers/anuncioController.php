@@ -24,7 +24,7 @@ class anuncioController {
 
     /** Inserta un nuevo anuncio */
     public function add_anuncio_controller(int $cursoId, array $post): string {
-        $titulo   = trim($post['titulo']   ?? '');
+        $titulo    = trim($post['titulo']   ?? '');
         $contenido = trim($post['contenido'] ?? '');
         if (!$titulo || !$contenido) {
             return '<div class="alert alert-warning text-center">Complete título y contenido.</div>';
@@ -39,15 +39,16 @@ class anuncioController {
 
     /** Actualiza título y contenido de un anuncio */
     public function update_anuncio_controller(int $id, array $post): string {
-        $titulo   = trim($post['titulo']   ?? '');
+        $titulo    = trim($post['titulo']   ?? '');
         $contenido = trim($post['contenido'] ?? '');
         if (!$titulo || !$contenido) {
             return '<div class="alert alert-warning text-center">Complete título y contenido.</div>';
         }
         $upd = $this->pdo->prepare("
             UPDATE anuncio
-               SET Titulo = ?, Contenido = ?
-             WHERE id     = ?
+               SET Titulo   = ?,
+                   Contenido = ?
+             WHERE id       = ?
         ");
         $upd->execute([$titulo, $contenido, $id]);
         return '<div class="alert alert-success text-center">Anuncio actualizado.</div>';
@@ -58,5 +59,56 @@ class anuncioController {
         $del = $this->pdo->prepare("DELETE FROM anuncio WHERE id = ?");
         $del->execute([$id]);
         return '<div class="alert alert-success text-center">Anuncio eliminado.</div>';
+    }
+
+    /**
+     * Lista los N anuncios más recientes a los que el usuario tiene acceso:
+     * - Si es Estudiante: de sus cursos.
+     * - Si es Docente o Admin: de los cursos que imparte/gestiona.
+     *
+     * IMPORTANTE: el LIMIT se inyecta directamente (sin parámetro) para evitar
+     * errores de sintaxis en MariaDB.
+     */
+    public function list_recent_by_user_controller(string $userKey, string $userType, int $limit = 10): array {
+        // Asegurarnos que $limit es un entero positivo
+        $limit = max(1, intval($limit));
+
+        if ($userType === 'Estudiante') {
+            $sql = "
+              SELECT a.Titulo,
+                     a.Contenido,
+                     a.Fecha,
+                     c.Nombre AS Curso
+                FROM anuncio a
+                JOIN curso c
+                  ON a.CursoId = c.id
+                JOIN curso_estudiante ce
+                  ON ce.CursoId = c.id
+                 AND ce.EstudianteCodigo = ?
+               ORDER BY a.Fecha DESC
+               LIMIT $limit
+            ";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$userKey]);
+
+        } else {
+            // Docente o Administrador: mostramos anuncios de cursos donde es docente
+            $sql = "
+              SELECT a.Titulo,
+                     a.Contenido,
+                     a.Fecha,
+                     c.Nombre AS Curso
+                FROM anuncio a
+                JOIN curso c
+                  ON a.CursoId = c.id
+               WHERE c.DocenteCodigo = ?
+               ORDER BY a.Fecha DESC
+               LIMIT $limit
+            ";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$userKey]);
+        }
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

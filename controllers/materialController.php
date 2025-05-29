@@ -86,4 +86,3 @@ class materialController {
         return $materialModel->count_material_by_estudiante_model($codigoEstudiante);
     }
 }    
-
