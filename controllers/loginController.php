@@ -19,24 +19,23 @@ class loginController extends loginModel {
         $userName = self::clean_string($userNameRaw);
         $userPass = trim($userPassRaw);
 
-        // 2) Buscamos al usuario solo por su nombre
-        $pdo = self::connect(); // asumiendo que loginModel provee connect()
-        $stmt = $pdo->prepare("SELECT Usuario, Clave, Tipo, Codigo, Privilegio, Genero 
-                                 FROM cuenta
-                                WHERE Usuario = ?");
+        // 2) Buscamos al usuario solo por su nombre de cuenta
+        $pdo = self::connect(); // loginModel::connect()
+        $stmt = $pdo->prepare("
+            SELECT Usuario, Clave, Tipo, Codigo, Privilegio, Genero 
+              FROM cuenta
+             WHERE Usuario = ?
+        ");
         $stmt->execute([$userName]);
 
         if($stmt->rowCount() === 1){
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $row  = $stmt->fetch(PDO::FETCH_ASSOC);
             $hash = $row['Clave'];
 
             // 3) Verificamos la contraseña
-            $isValid = false;
-            if(substr($hash, 0, 4) === '$2y$') {
-                // es bcrypt
+            if(substr($hash, 0, 4) === '$2y$'){
                 $isValid = password_verify($userPass, $hash);
             } else {
-                // tu cifrado legacy
                 $isValid = ($hash === self::encryption($userPass));
             }
 
@@ -46,9 +45,33 @@ class loginController extends loginModel {
                 $_SESSION['userName']      = $row['Usuario'];
                 $_SESSION['userType']      = $row['Tipo'];
                 $_SESSION['userKey']       = $row['Codigo'];
-                $_SESSION['userCode']      = $row['Codigo'];   // <-- AGREGAR esta línea
                 $_SESSION['userPrivilege'] = $row['Privilegio'];
                 $_SESSION['userToken']     = md5(uniqid(mt_rand(), true));
+
+                // 4.1) Obtenemos el nombre completo según el tipo de usuario
+                switch($row['Tipo']){
+                    case 'Administrador':
+                        $q = $pdo->prepare("SELECT Nombres, Apellidos FROM admin WHERE Codigo = ?");
+                        break;
+                    case 'Docente':
+                        $q = $pdo->prepare("SELECT Nombres, Apellidos FROM docente WHERE Codigo = ?");
+                        break;
+                    case 'Estudiante':
+                        $q = $pdo->prepare("SELECT Nombres, Apellidos FROM estudiante WHERE Codigo = ?");
+                        break;
+                    default:
+                        $q = null;
+                }
+                if($q){
+                    $q->execute([$row['Codigo']]);
+                    if($info = $q->fetch(PDO::FETCH_ASSOC)){
+                        $_SESSION['displayName'] = $info['Nombres'] . ' ' . $info['Apellidos'];
+                    } else {
+                        $_SESSION['displayName'] = $row['Usuario'];
+                    }
+                } else {
+                    $_SESSION['displayName'] = $row['Usuario'];
+                }
 
                 // 5) Avatar y URL según tipo
                 switch($row['Tipo']){
@@ -73,6 +96,7 @@ class loginController extends loginModel {
                         $url = SERVERURL . 'login/';
                 }
 
+                // 6) Redirigir
                 return '<script>window.location="' . $url . '";</script>';
             } else {
                 // contraseña incorrecta
@@ -94,6 +118,7 @@ class loginController extends loginModel {
             return self::sweet_alert_single($dataAlert);
         }
     }
+
     /**
      * Controlador para cerrar sesión (logout normal)
      */
@@ -105,9 +130,7 @@ class loginController extends loginModel {
             "token"     => $token
         ];
         if(self::login_session_destroy_model($data)){
-            return '<script type="text/javascript">'
-                 . 'window.location="'.SERVERURL.'login/";'
-                 . '</script>';
+            return '<script>window.location="'.SERVERURL.'login/";</script>';
         } else {
             $dataAlert = [
                 "title" => "Error al cerrar sesión",
@@ -129,13 +152,11 @@ class loginController extends loginModel {
             "token"     => $token
         ];
         if(self::login_session_destroy_model($data)){
-            return '<script type="text/javascript">'
-                 . 'window.location="'.SERVERURL.'login/";'
-                 . '</script>';
+            return '<script>window.location="'.SERVERURL.'login/";</script>';
         } else {
             $dataAlert = [
-                "title" => "Error al cerrar sesión",
-                "text"  => "No se pudo cerrar la sesión forzada.",
+                "title" => "Error al cerrar sesión forzada",
+                "text"  => "No se pudo cerrar la sesión.",
                 "type"  => "error"
             ];
             return self::sweet_alert_single($dataAlert);
