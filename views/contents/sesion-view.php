@@ -272,9 +272,18 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
               <a href="<?php echo SERVERURL."material/{$s['id']}/"; ?>">
                 <i class="zmdi zmdi-collection-text"></i> Material
               </a>
-              <a href="<?php echo SERVERURL."evaluacion/{$s['id']}/"; ?>">
-                <i class="zmdi zmdi-assignment"></i> Evaluación
-              </a>
+
+              <!-- Enlace a Evaluación según tipo de usuario -->
+              <?php if ($userType === 'Docente' || $userType === 'Administrador'): ?>
+                <a href="<?php echo SERVERURL."evaluacion/{$s['id']}/"; ?>">
+                  <i class="zmdi zmdi-assignment"></i> Evaluación
+                </a>
+              <?php else: /* Estudiante */ ?>
+                <a href="<?php echo SERVERURL."evaluacion-student/{$s['id']}/estudiante/"; ?>">
+                  <i class="zmdi zmdi-assignment"></i> Evaluación
+                </a>
+              <?php endif; ?>
+
               <?php if ($s['Video']): ?>
                 <a href="<?php echo htmlspecialchars($s['Video']); ?>" target="_blank">
                   <i class="zmdi zmdi-videocam"></i> Video
