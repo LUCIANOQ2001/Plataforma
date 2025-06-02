@@ -85,12 +85,13 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiant
 
     <?php elseif ($_SESSION['userType'] === "Docente"): ?>
 
-      <!-- Menú Docente -->
+      <!-- NUEVO: enlace “Mis datos” -->
       <li>
-        <a href="<?= SERVERURL ?>studentinfo/<?= $_SESSION['userKey'] ?>/">
+        <a href="<?= SERVERURL ?>teacherinfo/<?= $_SESSION['userKey'] ?>/">
           <i class="zmdi zmdi-account-box"></i> Mis datos
         </a>
       </li>
+
       <li><a href="<?= SERVERURL ?>dashboard/"><i class="zmdi zmdi-view-dashboard"></i> Inicio</a></li>
       <li>
         <a href="#!" class="btn-sideBar-SubMenu">
