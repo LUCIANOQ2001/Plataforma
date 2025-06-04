@@ -111,4 +111,24 @@ class asistenciaController {
             $stmt->execute([$codigo]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }   
+    public function get_history_by_student_course_controller(string $codigo, int $cursoId): array {
+    $sql = "
+        SELECT 
+          cu.Nombre   AS Curso,
+          s.Titulo    AS Sesion,
+          a.fecha     AS Fecha,
+          a.estado    AS Estado
+        FROM asistencia a
+        JOIN sesion s 
+          ON s.id = a.sesion_id
+        JOIN curso cu 
+          ON cu.id = s.CursoId
+        WHERE a.estudiante = ?
+          AND cu.id = ?
+        ORDER BY a.fecha DESC
+    ";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([$codigo, $cursoId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
 }

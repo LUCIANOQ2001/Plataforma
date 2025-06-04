@@ -197,15 +197,39 @@ class foroController {
         return '<div class="alert alert-success text-center">'
              . 'Comentario enviado.</div>';
     }
-
-    /** Lista los comentarios de un foro */
+/**
+ * Lista los comentarios de un foro, incluyendo el nombre completo del usuario
+ */
     public function list_comentarios(int $foroId): array {
-        $stmt = $this->pdo->prepare("
-            SELECT id, UsuarioCodigo, Comentario, Fecha, Adjunto
-              FROM foro_comentario
-             WHERE ForoId = ?
-             ORDER BY Fecha ASC
-        ");
+        $sql = "
+            SELECT 
+                fc.id,
+                fc.UsuarioCodigo,
+                fc.Comentario,
+                fc.Fecha,
+                fc.Adjunto,
+                -- Recuperamos el tipo de cuenta y luego, según sea, sacamos nombre y apellidos
+                cu.Tipo AS TipoCuenta,
+                -- Intentamos obtener el nombre desde estudiante, docente o admin
+                COALESCE(
+                    CONCAT(e.Nombres, ' ', e.Apellidos),
+                    CONCAT(d.Nombres, ' ', d.Apellidos),
+                    CONCAT(a.Nombres, ' ', a.Apellidos),
+                    cu.Usuario           -- como fallback: si no existe en ninguna tabla, muestro el UserName
+                ) AS NombreUsuario
+            FROM foro_comentario fc
+            INNER JOIN cuenta cu
+                ON fc.UsuarioCodigo = cu.Codigo
+            LEFT JOIN estudiante e
+                ON cu.Codigo = e.Codigo
+            LEFT JOIN docente d
+                ON cu.Codigo = d.Codigo
+            LEFT JOIN admin a
+                ON cu.Codigo = a.Codigo
+            WHERE fc.ForoId = ?
+            ORDER BY fc.Fecha ASC
+        ";
+        $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$foroId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

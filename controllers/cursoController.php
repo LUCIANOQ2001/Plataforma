@@ -117,16 +117,11 @@ class cursoController {
         ");
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    public function get_curso_by_id_controller(int $cursoId): PDOStatement {
-        $stmt = $this->pdo->prepare("
-            SELECT id, Nombre, Descripcion, DocenteCodigo
-            FROM curso
-            WHERE id = ?
-        ");
-        $stmt->execute([$cursoId]);
-        return $stmt;
-    }
-
+public function get_curso_by_id_controller(int $cursoId): ?array {
+    $stmt = $this->pdo->prepare("SELECT Nombre FROM curso WHERE id = ?");
+    $stmt->execute([$cursoId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+}
 
     public function count_cursos() {
     $stmt = mainModel::ejecutar_consulta_simple("SELECT COUNT(*) AS total FROM curso");
@@ -137,4 +132,16 @@ class cursoController {
         return $cursoModel->count_cursos_by_estudiante_model($codigoEstudiante);
     }
     
+    public function is_estudiante_inscrito_en_curso_controller(string $estCodigo, int $cursoId): bool {
+    $sql = "
+      SELECT 1
+        FROM curso_estudiante
+       WHERE EstudianteCodigo = ?
+         AND CursoId = ?
+    ";
+    $stmt = $this->pdo->prepare($sql);
+    $stmt->execute([$estCodigo, $cursoId]);
+    return $stmt->fetchColumn() !== false;
+}
+
 }
