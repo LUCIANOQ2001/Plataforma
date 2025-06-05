@@ -1,4 +1,49 @@
-<?php if($_SESSION['userType'] === "Estudiante"): ?>
+<?php 
+// views/contents/asistencialist-view.php
+
+// Solo Estudiantes pueden acceder a este historial
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if ($_SESSION['userType'] !== "Estudiante") {
+    echo (new loginController())->login_session_force_destroy_controller();
+    exit;
+}
+
+// 1) Extraer el courseId de la URL: /asistencialist/{cursoId}/
+$parts    = explode('/', trim($_GET['views'], '/'));
+$cursoId  = intval($parts[1] ?? 0);
+
+if ($cursoId <= 0) {
+    echo '<div class="alert alert-danger text-center">Curso no válido.</div>';
+    return;
+}
+
+require_once __DIR__ . '/../../controllers/asistenciaController.php';
+require_once __DIR__ . '/../../controllers/cursoController.php';
+
+// 2) Verificar que el estudiante esté inscrito en ese curso (opcional pero recomendado)
+$insCurso = new cursoController();
+$userKey  = $_SESSION['userKey'] ?? '';
+$estaInscrito = $insCurso->is_estudiante_inscrito_en_curso_controller($userKey, $cursoId);
+
+if (!$estaInscrito) {
+    echo '<div class="alert alert-danger text-center">'
+       . 'No estás inscrito en este curso.</div>';
+    return;
+}
+
+// 3) Obtener listado de asistencias para este estudiante y este curso
+$insAsist  = new asistenciaController();
+$records   = $insAsist->get_history_by_student_course_controller($userKey, $cursoId);
+
+// 4) Obtener nombre del curso para el encabezado
+$cursoInfo = $insCurso->get_curso_by_id_controller($cursoId);
+$cursoNombre = $cursoInfo['Nombre'] ?? '';
+
+// (Si no tienes estos métodos en cursoController, crea uno que haga:
+//    SELECT Nombre FROM curso WHERE id = ? )
+?>
 
 <style>
   html, body {
@@ -42,7 +87,7 @@
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
     border: 1px solid #3c3d4f;
     max-width: 960px;
-    margin: 0 auto;
+    margin: 0 auto 20px auto;
   }
 
   .panel-heading {
@@ -97,32 +142,29 @@
 </style>
 
 <section class="dashboard-contentPage">
-  <?php
-    require_once __DIR__ . '/../../controllers/asistenciaController.php';
-    $insAsist   = new asistenciaController();
-    $codigoEst  = $_SESSION['userCode'] ?? $_SESSION['userKey'] ?? '';
-    $records    = $insAsist->get_history_by_student_controller($codigoEst);
-  ?>
-      <!-- Volver -->
-      <a href="<?php echo SERVERURL."asistencialist/{$sesionId}/"; ?>" class="btn btn-secondary btn-sm btn-back">
-        <i class="zmdi zmdi-arrow-left"></i> Volver
-      </a>
-
-  <div class="container-fluid">
-    <div class="page-header text-center">
+  <div class="container-fluid text-center">
+    <div class="page-header">
       <h1 class="text-titles">
-        <i class="zmdi zmdi-time zmdi-hc-fw"></i> Mi Historial <small>Asistencias</small>
+        <i class="zmdi zmdi-time"></i> Mis Asistencias  
+        <small><?php echo htmlspecialchars($cursoNombre); ?></small>
       </h1>
     </div>
     <p class="lead">
-      Aquí puedes revisar todas tus asistencias registradas, con su curso y sesión correspondientes.
+      Aquí puedes revisar todas tus asistencias registradas para este curso.
     </p>
+  </div>
+
+  <!-- Botón “Volver a Mis Cursos” -->
+  <div class="container-fluid text-left" style="margin-bottom:15px;">
+    <a href="<?php echo SERVERURL."miscursos/"; ?>" class="btn btn-secondary btn-sm btn-back">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
+    </a>
   </div>
 
   <div class="container-fluid">
     <div class="panel panel-success">
       <div class="panel-heading">
-        <i class="zmdi zmdi-format-list-bulleted"></i> Registro de Asistencias
+        <i class="zmdi zmdi-format-list-bulleted"></i> Historial de Asistencias
       </div>
       <div class="panel-body">
         <div class="table-responsive">
@@ -130,32 +172,32 @@
             <thead>
               <tr>
                 <th>#</th>
-                <th>Curso</th>
                 <th>Sesión</th>
                 <th>Fecha</th>
                 <th>Estado</th>
               </tr>
             </thead>
             <tbody>
-              <?php if(!empty($records)): $i = 1; foreach($records as $row): ?>
-              <tr>
-                <td><?php echo $i++; ?></td>
-                <td><?php echo htmlspecialchars($row['Curso']); ?></td>
-                <td><?php echo htmlspecialchars($row['Sesion']); ?></td>
-                <td><?php echo htmlspecialchars($row['Fecha']); ?></td>
-                <td>
-                  <span class="label label-<?php 
-                    echo $row['Estado']=='presente'   ? 'success' 
-                         : ($row['Estado']=='ausente'     ? 'danger' : 'warning');
-                  ?>">
-                    <?php echo ucfirst($row['Estado']); ?>
-                  </span>
-                </td>
-              </tr>
-              <?php endforeach; else: ?>
-              <tr>
-                <td colspan="5">No se encontraron registros de asistencia.</td>
-              </tr>
+              <?php if (!empty($records)): ?>
+                <?php $i = 1; foreach ($records as $row): ?>
+                  <tr>
+                    <td><?php echo $i++; ?></td>
+                    <td><?php echo htmlspecialchars($row['Sesion']); ?></td>
+                    <td><?php echo htmlspecialchars($row['Fecha']); ?></td>
+                    <td>
+                      <span class="label label-<?php 
+                        echo $row['Estado']=='presente'   ? 'success' 
+                             : ($row['Estado']=='ausente'     ? 'danger' : 'warning');
+                      ?>">
+                        <?php echo ucfirst($row['Estado']); ?>
+                      </span>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <tr>
+                  <td colspan="4">No se encontraron registros de asistencia para este curso.</td>
+                </tr>
               <?php endif; ?>
             </tbody>
           </table>
@@ -164,7 +206,3 @@
     </div>
   </div>
 </section>
-
-<?php else: 
-  echo (new loginController())->login_session_force_destroy_controller();
-endif; ?>

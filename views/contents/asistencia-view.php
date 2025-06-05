@@ -199,28 +199,31 @@ if (in_array($_SESSION['userType'], ['Administrador','Docente'])) {
               </div>
             </div>
           </form>
-        <?php else: ?>
-          <div class="panel panel-info">
-            <div class="panel-heading">
-              <h3 class="panel-title">
-                <i class="zmdi zmdi-assignment-account"></i>
-                Tu Asistencia
-              </h3>
+          <?php else: ?>
+            <div class="panel panel-info">
+              <div class="panel-heading">
+                <h3 class="panel-title">
+                  <i class="zmdi zmdi-assignment-account"></i>
+                  Tu Asistencia
+                </h3>
+              </div>
+              <div class="panel-body text-center">
+                <?php
+                  // Antes: $codigo = $_SESSION['userCode'] ?? '';
+                  // Ahora sí usamos la variable que efectivamente guardó loginController:
+                  $codigo = $_SESSION['userKey'] ?? '';
+                  $status = $insAsist
+                    ->get_attendance_status_student_controller($sesionId, $codigo)
+                    ?? 'ausente';
+                ?>
+                <p class="lead">
+                  Tu estado de asistencia es: 
+                  <strong><?php echo ucfirst($status); ?></strong>
+                </p>
+              </div>
             </div>
-            <div class="panel-body text-center">
-              <?php
-                $codigo = $_SESSION['userCode'] ?? '';
-                $status = $insAsist
-                  ->get_attendance_status_student_controller($sesionId, $codigo)
-                  ?? 'ausente';
-              ?>
-              <p class="lead">
-                Tu estado de asistencia es: 
-                <strong><?php echo ucfirst($status); ?></strong>
-              </p>
-            </div>
-          </div>
-        <?php endif; ?>
+          <?php endif; ?>
+
       </div>
     </div>
   </div>
