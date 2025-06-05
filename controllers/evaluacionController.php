@@ -1,142 +1,381 @@
 <?php
-// File: controllers/evaluacionController.php
+// controllers/evaluacionController.php
 
-require_once __DIR__ . '/../models/evaluacionModel.php';
+class evaluacionController {
+    /** @var \PDO */
+    private $pdo;
 
-class evaluacionController extends evaluacionModel {
+    public function __construct() {
+        $this->pdo = new PDO(
+            'mysql:host=127.0.0.1;dbname=plataformavirtual;charset=utf8',
+            'root',
+            '',
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+    }
 
     /**
-     * Procesa el formulario completo (evaluación + preguntas + opciones).
-     * Devuelve un HTML con alertas (éxito o error).
+     * Inserta una nueva evaluación con todas sus preguntas y opciones (igual que antes).
+     *
+     * @param int   $sesionId  ID de la sesión a la que pertenece la evaluación.
+     * @param array $post      Datos provenientes del formulario ($_POST).
+     * @return string          HTML con mensaje de éxito o error.
      */
     public function add_evaluacion_controller(int $sesionId, array $post): string {
-        // 1) Sanitizar y validar metadatos
+        // 1) Validar campos generales
         $titulo       = trim($post['titulo'] ?? '');
-        $fechaInicio  = trim($post['fechainicio'] ?? '');
-        $fechaCierre  = trim($post['fechacierre'] ?? '');
-        $intentos     = intval($post['intentos'] ?? 1);
+        $fechaInicio  = trim($post['fecha_inicio'] ?? '');  // formato "YYYY-MM-DDTHH:MM"
+        $fechaCierre  = trim($post['fecha_cierre'] ?? '');
         $duracion     = intval($post['duracion'] ?? 0);
 
-        if (!$titulo || !$fechaInicio || !$fechaCierre) {
-            return '<div class="alert alert-warning text-center">Por favor complete el título, fecha de inicio y fecha de cierre.</div>';
+        if (!$titulo || !$fechaInicio || !$fechaCierre || $duracion <= 0) {
+            return '<div class="alert alert-warning text-center">'
+                 . 'Complete todos los campos generales de la evaluación.</div>';
         }
-        // (Opcional) validar que $fechaInicio < $fechaCierre
+
+        // 2) Convertir formatos "YYYY-MM-DDTHH:MM" a "YYYY-MM-DD HH:MM:00"
+        $fechaInicioDb = str_replace('T', ' ', $fechaInicio) . ':00';
+        $fechaCierreDb = str_replace('T', ' ', $fechaCierre) . ':00';
+
+        // 3) Obtener arreglo de preguntas
+        $preguntasTexto = $post['pregunta_texto'] ?? [];
+        if (!is_array($preguntasTexto) || count($preguntasTexto) === 0) {
+            return '<div class="alert alert-warning text-center">'
+                 . 'Debe agregar al menos una pregunta.</div>';
+        }
 
         try {
-            // 2) Insertar la evaluación y obtener su ID
-            $evaluacionId = $this->add_evaluacion(
+            // Iniciar transacción
+            $this->pdo->beginTransaction();
+
+            // 4) Insertar fila en tabla `evaluacion`
+            $stmtEv = $this->pdo->prepare("
+                INSERT INTO evaluacion 
+                    (SesionId, Titulo, FechaInicio, FechaCierre, DuracionMinutos)
+                VALUES (?, ?, ?, ?, ?)
+            ");
+            $stmtEv->execute([
                 $sesionId,
                 $titulo,
-                $fechaInicio,
-                $fechaCierre,
-                $intentos,
+                $fechaInicioDb,
+                $fechaCierreDb,
                 $duracion
-            );
+            ]);
+            $evaluacionId = intval($this->pdo->lastInsertId());
 
-            // 3) Recorrer las preguntas enviadas
-            if (isset($post['questions']) && is_array($post['questions'])) {
-                foreach ($post['questions'] as $index => $q) {
-                    $textoPregunta = trim($q['texto'] ?? '');
-                    if (!$textoPregunta) {
-                        // Saltar si no hay texto
-                        continue;
+            // 5) Recorrer cada pregunta
+            foreach ($preguntasTexto as $index => $textoPregunta) {
+                $textoPregunta = trim($textoPregunta);
+                if ($textoPregunta === '') {
+                    // Si alguna pregunta está vacía, cancelar
+                    $this->pdo->rollBack();
+                    return '<div class="alert alert-warning text-center">'
+                         . 'La pregunta ' . ($index + 1) . ' está vacía.</div>';
+                }
+
+                // 5.1) Insertar en tabla `pregunta`
+                $stmtPreg = $this->pdo->prepare("
+                    INSERT INTO pregunta (EvaluacionId, TextoPregunta)
+                    VALUES (?, ?)
+                ");
+                $stmtPreg->execute([
+                    $evaluacionId,
+                    $textoPregunta
+                ]);
+                $preguntaId = intval($this->pdo->lastInsertId());
+
+                // 5.2) Obtener índice de la opción correcta
+                $correctKey = 'pregunta_correcta_' . $index;
+                if (!isset($post[$correctKey])) {
+                    $this->pdo->rollBack();
+                    return '<div class="alert alert-warning text-center">'
+                         . 'No se especificó la opción correcta para la pregunta ' . ($index + 1) . '.</div>';
+                }
+                $correctIndex = intval($post[$correctKey]);
+
+                // 5.3) Recorrer las 4 opciones de texto
+                $opcionesKey = 'opciones_' . $index;
+                $opcionesArr = $post[$opcionesKey] ?? [];
+                if (!is_array($opcionesArr) || count($opcionesArr) < 4) {
+                    $this->pdo->rollBack();
+                    return '<div class="alert alert-warning text-center">'
+                         . 'La pregunta ' . ($index + 1) . ' debe tener cuatro opciones.</div>';
+                }
+
+                foreach ($opcionesArr as $optIndex => $textoOpcion) {
+                    $textoOpcion = trim($textoOpcion);
+                    if ($textoOpcion === '') {
+                        $this->pdo->rollBack();
+                        return '<div class="alert alert-warning text-center">'
+                             . 'La opción ' . ($optIndex + 1) . ' de la pregunta ' . ($index + 1) . ' está vacía.</div>';
                     }
-                    // Insertar pregunta y obtener su ID
-                    $preguntaId = $this->add_pregunta($evaluacionId, $textoPregunta);
+                    $esCorrecta = ($optIndex === $correctIndex) ? 1 : 0;
 
-                    // Índice de la opción correcta (si vino como radio)
-                    $correctIdx = isset($q['correcta']) ? intval($q['correcta']) : -1;
-
-                    // Recorrer las opciones para esta pregunta
-                    if (isset($q['opciones']) && is_array($q['opciones'])) {
-                        foreach ($q['opciones'] as $j => $op) {
-                            $textoOpcion = trim($op['texto'] ?? '');
-                            if ($textoOpcion === '') {
-                                continue;
-                            }
-                            // Marcar EsCorrecta = 1 sólo si coincide con el índice
-                            $esCorrecta = ($j === $correctIdx) ? 1 : 0;
-                            $this->add_opcion($preguntaId, $textoOpcion, $esCorrecta);
-                        }
-                    }
+                    // Insertar en tabla `opcion`
+                    $stmtOpt = $this->pdo->prepare("
+                        INSERT INTO opcion (PreguntaId, TextoOpcion, EsCorrecta)
+                        VALUES (?, ?, ?)
+                    ");
+                    $stmtOpt->execute([
+                        $preguntaId,
+                        $textoOpcion,
+                        $esCorrecta
+                    ]);
                 }
             }
 
-            return '<div class="alert alert-success text-center">Evaluación creada correctamente.</div>';
+            // 6) Confirmar transacción
+            $this->pdo->commit();
+            return '<div class="alert alert-success text-center">'
+                 . 'Evaluación creada exitosamente.</div>';
+
         } catch (PDOException $e) {
-            return '<div class="alert alert-danger text-center">
-                        Error al guardar la evaluación:<br>' . htmlspecialchars($e->getMessage()) . '
-                    </div>';
+            // En caso de error, revertir transacción
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            return '<div class="alert alert-danger text-center">'
+                 . 'Error al crear la evaluación:<br>' 
+                 . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
 
     /**
-     * Devuelve un array con todas las evaluaciones creadas para una sesión dada.
+     * Actualiza una evaluación existente (edita todos sus campos);
+     * para simplificar, borra las preguntas/opciones previas y vuelve a insertar las nuevas.
+     *
+     * @param int   $evaluacionId  ID de la evaluación a modificar.
+     * @param array $post          Datos provenientes del formulario ($_POST).
+     * @return string              HTML con mensaje de éxito o error.
      */
-    public function list_evaluaciones_controller(int $sesionId): array {
-        return $this->list_evaluaciones_by_sesion($sesionId);
-    }
+    public function update_evaluacion_controller(int $evaluacionId, array $post): string {
+        // 1) Validar campos generales
+        $titulo       = trim($post['titulo'] ?? '');
+        $fechaInicio  = trim($post['fecha_inicio'] ?? '');  // formato "YYYY-MM-DDTHH:MM"
+        $fechaCierre  = trim($post['fecha_cierre'] ?? '');
+        $duracion     = intval($post['duracion'] ?? 0);
 
-    /**
-     * Verifica si ya existe un resultado para esta evaluación y estudiante.
-     * Firma compatible con el modelo: devuelve int (0 o 1).
-     */
-    public function exists_resultado(int $evaluacionId, string $estudianteCodigo): int {
-        return $this->exists_resultado_model($evaluacionId, $estudianteCodigo);
-    }
-
-    /**
-     * Cuenta cuántos resultados (intentos) tiene un estudiante en una evaluación.
-     */
-    public function count_resultados_by_evaluacion_estudiante(int $evaluacionId, string $estudianteCodigo): int {
-        return $this->count_resultados_by_evaluacion_estudiante_model($evaluacionId, $estudianteCodigo);
-    }
-
-    /**
-     * Controlador para que el estudiante envíe sus respuestas.
-     * Recibe: evaluacionId, estudianteCodigo (de sesión) y $_POST con respuestas.
-     * Calcula la nota (cada correcta vale igual para sumar 20 puntos).
-     */
-    public function submit_respuestas_controller(int $evaluacionId, string $estudianteCodigo, array $post): string {
-        // Verificar que no exista ya un resultado (o respetar límite de intentos)
-        $intentosHechos = $this->count_resultados_by_evaluacion_estudiante($evaluacionId, $estudianteCodigo);
-        $evalData       = $this->get_evaluacion($evaluacionId);
-        $maxIntentos    = intval($evalData['IntentosPermitidos'] ?? 1);
-
-        if ($intentosHechos >= $maxIntentos) {
-            return '<div class="alert alert-warning text-center">Has alcanzado el máximo de intentos permitidos.</div>';
+        if (!$titulo || !$fechaInicio || !$fechaCierre || $duracion <= 0) {
+            return '<div class="alert alert-warning text-center">'
+                 . 'Complete todos los campos generales de la evaluación.</div>';
         }
 
-        // Obtener todas las preguntas de esta evaluación
-        $preguntas = $this->get_preguntas_by_evaluacion($evaluacionId);
-        $totalPreguntas = count($preguntas);
-        if ($totalPreguntas === 0) {
-            return '<div class="alert alert-warning text-center">No hay preguntas para esta evaluación.</div>';
+        // 2) Convertir formatos "YYYY-MM-DDTHH:MM" a "YYYY-MM-DD HH:MM:00"
+        $fechaInicioDb = str_replace('T', ' ', $fechaInicio) . ':00';
+        $fechaCierreDb = str_replace('T', ' ', $fechaCierre) . ':00';
+
+        // 3) Obtener arreglo de preguntas
+        $preguntasTexto = $post['pregunta_texto'] ?? [];
+        if (!is_array($preguntasTexto) || count($preguntasTexto) === 0) {
+            return '<div class="alert alert-warning text-center">'
+                 . 'Debe agregar al menos una pregunta.</div>';
         }
 
-        // Contar aciertos
-        $aciertos = 0;
-        foreach ($preguntas as $preg) {
-            $pid = intval($preg['id']);
-            // En el formulario, cada respuesta vino con name="resp_{preguntaId}"
-            if (isset($post["resp_{$pid}"])) {
-                $opcionElegidaId = intval($post["resp_{$pid}"]);
-                // Guardar la respuesta
-                $this->add_respuesta_estudiante($evaluacionId, $estudianteCodigo, $pid, $opcionElegidaId);
-                // Verificar si es correcta
-                if ($this->is_opcion_correcta($opcionElegidaId) === 1) {
-                    $aciertos++;
+        try {
+            // Iniciar transacción
+            $this->pdo->beginTransaction();
+
+            // 4) Actualizar fila en tabla `evaluacion`
+            $stmtUpd = $this->pdo->prepare("
+                UPDATE evaluacion
+                   SET Titulo = ?, FechaInicio = ?, FechaCierre = ?, DuracionMinutos = ?
+                 WHERE id = ?
+            ");
+            $stmtUpd->execute([
+                $titulo,
+                $fechaInicioDb,
+                $fechaCierreDb,
+                $duracion,
+                $evaluacionId
+            ]);
+
+            // 5) Borrar preguntas u opciones previas (cascade con FK)
+            //    Dado que existe FK con ON DELETE CASCADE, basta con borrar de 'pregunta':
+            $delPreg = $this->pdo->prepare("
+                DELETE FROM pregunta WHERE EvaluacionId = ?
+            ");
+            $delPreg->execute([$evaluacionId]);
+            // → al borrar preguntas, la tabla 'opcion' también borra en cascada las filas relacionadas.
+
+            // 6) Insertar nuevamente las preguntas y opciones (similar a add_evaluacion_controller)
+            foreach ($preguntasTexto as $index => $textoPregunta) {
+                $textoPregunta = trim($textoPregunta);
+                if ($textoPregunta === '') {
+                    $this->pdo->rollBack();
+                    return '<div class="alert alert-warning text-center">'
+                         . 'La pregunta ' . ($index + 1) . ' está vacía.</div>';
+                }
+
+                // 6.1) Insertar en tabla `pregunta`
+                $stmtPreg = $this->pdo->prepare("
+                    INSERT INTO pregunta (EvaluacionId, TextoPregunta)
+                    VALUES (?, ?)
+                ");
+                $stmtPreg->execute([
+                    $evaluacionId,
+                    $textoPregunta
+                ]);
+                $preguntaId = intval($this->pdo->lastInsertId());
+
+                // 6.2) Obtener índice de la opción correcta
+                $correctKey = 'pregunta_correcta_' . $index;
+                if (!isset($post[$correctKey])) {
+                    $this->pdo->rollBack();
+                    return '<div class="alert alert-warning text-center">'
+                         . 'No se especificó la opción correcta para la pregunta ' . ($index + 1) . '.</div>';
+                }
+                $correctIndex = intval($post[$correctKey]);
+
+                // 6.3) Recorrer las 4 opciones de texto
+                $opcionesKey = 'opciones_' . $index;
+                $opcionesArr = $post[$opcionesKey] ?? [];
+                if (!is_array($opcionesArr) || count($opcionesArr) < 4) {
+                    $this->pdo->rollBack();
+                    return '<div class="alert alert-warning text-center">'
+                         . 'La pregunta ' . ($index + 1) . ' debe tener cuatro opciones.</div>';
+                }
+
+                foreach ($opcionesArr as $optIndex => $textoOpcion) {
+                    $textoOpcion = trim($textoOpcion);
+                    if ($textoOpcion === '') {
+                        $this->pdo->rollBack();
+                        return '<div class="alert alert-warning text-center">'
+                             . 'La opción ' . ($optIndex + 1) . ' de la pregunta ' . ($index + 1) . ' está vacía.</div>';
+                    }
+                    $esCorrecta = ($optIndex === $correctIndex) ? 1 : 0;
+
+                    // Insertar en tabla `opcion`
+                    $stmtOpt = $this->pdo->prepare("
+                        INSERT INTO opcion (PreguntaId, TextoOpcion, EsCorrecta)
+                        VALUES (?, ?, ?)
+                    ");
+                    $stmtOpt->execute([
+                        $preguntaId,
+                        $textoOpcion,
+                        $esCorrecta
+                    ]);
                 }
             }
+
+            // 7) Confirmar transacción
+            $this->pdo->commit();
+            return '<div class="alert alert-success text-center">'
+                 . 'Evaluación actualizada exitosamente.</div>';
+
+        } catch (PDOException $e) {
+            // En caso de error, revertir transacción
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            return '<div class="alert alert-danger text-center">'
+                 . 'Error al actualizar la evaluación:<br>' 
+                 . htmlspecialchars($e->getMessage()) . '</div>';
         }
+    }
 
-        // Calcular nota sobre 20
-        $nota = ($aciertos / $totalPreguntas) * 20;
-        $nota = round($nota, 2);
+    /**
+     * Elimina una evaluación (y, en cascada, sus preguntas y opciones).
+     *
+     * @param int $evaluacionId  ID de la evaluación a borrar.
+     * @return string            HTML con mensaje de éxito o error.
+     */
+    public function delete_evaluacion_controller(int $evaluacionId): string {
+        try {
+            $stmt = $this->pdo->prepare("DELETE FROM evaluacion WHERE id = ?");
+            $stmt->execute([$evaluacionId]);
+            return '<div class="alert alert-success text-center">'
+                 . 'Evaluación eliminada exitosamente.</div>';
+        } catch (PDOException $e) {
+            return '<div class="alert alert-danger text-center">'
+                 . 'Error al eliminar la evaluación:<br>' 
+                 . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    }
 
-        // Guardar resultado
-        $this->add_resultado($evaluacionId, $estudianteCodigo, $nota);
+    /**
+     * Devuelve un arreglo con todas las evaluaciones de una sesión dada.
+     *
+     * @param int $sesionId  ID de la sesión.
+     * @return array         Array de evaluaciones (cada una con keys: id, SesionId, Titulo, FechaInicio, FechaCierre, DuracionMinutos).
+     */
+    public function list_evaluaciones_by_sesion_controller(int $sesionId): array {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                id,
+                SesionId,
+                Titulo,
+                FechaInicio,
+                FechaCierre,
+                DuracionMinutos
+            FROM evaluacion
+            WHERE SesionId = ?
+            ORDER BY FechaInicio ASC
+        ");
+        $stmt->execute([$sesionId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-        return '<div class="alert alert-success text-center">Respuestas enviadas. Tu nota: ' . $nota . '</div>';
+    /**
+     * Obtiene los datos de una evaluación por su ID (sin preguntas/opciones).
+     *
+     * @param int $evaluacionId  ID de la evaluación.
+     * @return array|null        Arreglo asociativo con la fila (o null si no existe).
+     */
+    public function get_evaluacion_by_id_controller(int $evaluacionId): ?array {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                id,
+                SesionId,
+                Titulo,
+                FechaInicio,
+                FechaCierre,
+                DuracionMinutos
+            FROM evaluacion
+            WHERE id = ?
+        ");
+        $stmt->execute([$evaluacionId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    /**
+     * Lista todas las preguntas correspondientes a una evaluación.
+     *
+     * @param int $evaluacionId  ID de la evaluación.
+     * @return array             Array de preguntas (cada una con keys: id, EvaluacionId, TextoPregunta).
+     */
+    public function list_preguntas_by_evaluacion_controller(int $evaluacionId): array {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                id,
+                EvaluacionId,
+                TextoPregunta
+            FROM pregunta
+            WHERE EvaluacionId = ?
+            ORDER BY id ASC
+        ");
+        $stmt->execute([$evaluacionId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Lista todas las opciones de una pregunta dada.
+     *
+     * @param int $preguntaId  ID de la pregunta.
+     * @return array           Array de opciones (cada una con keys: id, PreguntaId, TextoOpcion, EsCorrecta).
+     */
+    public function list_opciones_by_pregunta_controller(int $preguntaId): array {
+        $stmt = $this->pdo->prepare("
+            SELECT 
+                id,
+                PreguntaId,
+                TextoOpcion,
+                EsCorrecta
+            FROM opcion
+            WHERE PreguntaId = ?
+            ORDER BY id ASC
+        ");
+        $stmt->execute([$preguntaId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

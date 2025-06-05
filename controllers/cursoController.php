@@ -144,4 +144,15 @@ public function get_curso_by_id_controller(int $cursoId): ?array {
     return $stmt->fetchColumn() !== false;
 }
 
+public function list_estudiantes_por_curso_controller(int $cursoId): array {
+    $stmt = $this->pdo->prepare("
+        SELECT e.Codigo, e.Nombres, e.Apellidos, e.Email
+          FROM estudiante e
+    INNER JOIN curso_estudiante ce ON ce.EstudianteCodigo = e.Codigo
+         WHERE ce.CursoId = ?
+      ORDER BY e.Apellidos, e.Nombres
+    ");
+    $stmt->execute([$cursoId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 }
