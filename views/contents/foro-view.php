@@ -74,6 +74,12 @@ if ($foroId > 0) {
 ?>
 
 <style>
+  
+  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
   html, body {
     background-color: #1e1f28;
     color: #fff;
@@ -84,7 +90,7 @@ if ($foroId > 0) {
   }
   .dashboard-contentPage {
     margin-left: 170px;
-    padding: 30px;
+    padding: 0 30px;
     width: calc(100% - 170px);
     background-color: #1e1f28;
     box-sizing: border-box;
@@ -149,14 +155,22 @@ if ($foroId > 0) {
     background-color: #d32f2f !important;
     border: 1px solid #b71c1c !important;
   }
-  .btn-back {
-    margin-bottom: 1rem;
-    color: #fff !important;
+  .btn-back-home {
+    background-color: #607d8b !important;
+    border-color:     #455a64 !important;
+    color:            #fff !important;
+    margin-bottom: 20px;
   }
 </style>
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
+    <!-- Botón para volver a Mis Sesiones -->
+    <a href="<?php echo SERVERURL;?>sesion/<?php echo $ses['CursoId']; ?>/"
+       class="btn btn-back-home btn-sm">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
+    </a>
+
     <div class="page-header">
       <h1 class="text-titles">
         <i class="zmdi zmdi-comment-text"></i>
@@ -285,15 +299,21 @@ if ($foroId > 0) {
 
   <!-- ====== DETALLE DE UN FORO (cuando $foroId > 0) ====== -->
   <div class="container-fluid" style="margin-top:15px;">
-    <!-- Botón para volver a la lista -->
+    <!-- Botón para volver a Foros de esta sesión -->
     <a href="<?php echo SERVERURL."foro/{$sesionId}/"; ?>"
-       class="btn btn-info btn-sm btn-back">
+       class="btn btn-info btn-sm btn-raised btn-back-home">
       <i class="zmdi zmdi-arrow-left"></i> Volver a Foros
+    </a>
+
+    <!-- Botón para volver a Mis Sesiones -->
+    <a href="<?php echo SERVERURL."sesion/{$ses['CursoId']}/"; ?>"
+       class="btn btn-back-home btn-sm" style="margin-left:10px;">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
     </a>
 
     <!-- Si es Admin/Docente, mostramos botones de Eliminar/Editar -->
     <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
-      <div class="text-right" style="margin-bottom:10px;">
+      <div class="text-right" style="margin-top:10px; margin-bottom:10px;">
         <form method="POST" style="display:inline;">
           <!-- hidden delete_foro imprimirá el ID del foro a eliminar -->
           <input type="hidden" name="delete_foro" value="<?php echo $foro['id']; ?>">

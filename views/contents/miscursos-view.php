@@ -22,11 +22,24 @@ if ($userType === 'Estudiante') {
     $cursos   = $insCurso->list_cursos_estudiante_controller($userKey);
     $subtitle = "Aquí tienes los cursos en los que estás inscrito. Pasa el cursor sobre una tarjeta para ver sus opciones.";
 } else {
+    // Para Docente o Administrador
     $cursos   = $insCurso->list_mis_cursos_controller($userKey);
     $subtitle = "Aquí tienes los cursos a tu cargo. Pasa el cursor sobre una tarjeta para ver sus opciones.";
 }
 ?>
 <style>
+  /* ------------------------------------ */
+  /* Ocultar íconos de “tres puntos” y “lupa” */
+  /* ------------------------------------ */
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
+
   html, body {
     margin: 0; padding: 0;
     background-color: #1e1f28; color: #fff;
@@ -36,7 +49,7 @@ if ($userType === 'Estudiante') {
 
   .dashboard-contentPage {
     margin-left: 170px;
-    padding: 30px 40px;
+    padding: 0 30px;
     min-height: 100vh;
     background-color: #1e1f28;
     max-width: calc(100vw - 170px);
@@ -68,8 +81,7 @@ if ($userType === 'Estudiante') {
     background: #2a2c3b;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-    /* quitamos overflow:hidden para que el dropdown no se corte */
-    overflow: visible;
+    overflow: visible;           /* para mostrar dropdown completo */
     transition: transform 0.2s ease-in-out;
   }
   .course-card:hover {
@@ -80,6 +92,8 @@ if ($userType === 'Estudiante') {
     height: 160px;
     background-size: cover;
     background-position: center;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
   }
 
   .course-body {
@@ -120,7 +134,7 @@ if ($userType === 'Estudiante') {
     background: #444;
   }
 
-  /* Ahora solo el dropdown de la tarjeta con hover se mostrará */
+  /* Mostrar dropdown al hacer hover sobre la tarjeta */
   .course-card:hover .course-dropdown {
     display: block;
   }
@@ -161,12 +175,18 @@ if ($userType === 'Estudiante') {
                 <a href="<?php echo SERVERURL."anunciocurso/{$c['id']}/"; ?>">
                   <i class="zmdi zmdi-notifications"></i> Anuncios
                 </a>
-                <a href="<?php echo SERVERURL."asistencialist/{$c['id']}/"; ?>">
-                  <i class="zmdi zmdi-comment-text"></i> Mis Asistencias
-                </a>
-                <a href="<?php echo SERVERURL."reportecurso/{$c['id']}/"; ?>">
-                  <i class="zmdi zmdi-chart"></i> Reporte de notas
-                </a>
+                <?php if ($userType === 'Estudiante'): ?>
+                  <a href="<?php echo SERVERURL."asistencialist/{$c['id']}/"; ?>">
+                    <i class="zmdi zmdi-comment-text"></i> Mis Asistencias
+                  </a>
+                  <a href="<?php echo SERVERURL."reportenotas-student/{$c['id']}/"; ?>">
+                    <i class="zmdi zmdi-chart"></i> Reporte de Notas
+                  </a>
+                <?php else: /* Docente o Administrador */ ?>
+                  <a href="<?php echo SERVERURL."reportenotas/{$c['id']}/"; ?>">
+                    <i class="zmdi zmdi-chart"></i> Reporte de Notas
+                  </a>
+                <?php endif; ?>
               </div>
             </div>
           </div>

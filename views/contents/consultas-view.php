@@ -77,7 +77,7 @@ $totalPages = ceil($total / $perPage);
 
 // Consulta de datos con JOIN a estudiante (incluye Mensaje)
 $stmt = $pdo->prepare(
-    "SELECT c.id, e.Nombres, e.Apellidos, c.Asunto, c.Mensaje, c.Mensaje, c.Fecha, c.Estado
+    "SELECT c.id, e.Nombres, e.Apellidos, c.Asunto, c.Mensaje, c.Fecha, c.Estado
      FROM consultas c
      JOIN estudiante e ON c.CodigoEstudiante = e.Codigo
      ORDER BY c.Fecha DESC
@@ -89,109 +89,303 @@ $stmt->execute();
 $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- Estilos embebidos: ajusta ancho y alto aquí -->
 <style>
-.consultas-panel {
-    max-width: 900px; /* cambia este valor para ajustar ancho */
-    width: 90%;       /* porcentaje relativo */
-    margin: 20px auto;
-    padding: 0;
-}
-.consultas-heading {
-    background-color: #2c3e50;
-    color: #fff;
-    padding: 15px 20px;
-}
-.consultas-body {
-    background-color: #fff;
-    padding: 20px;
-    text-align: center;
-}
-.table-responsive {
-    max-height: 300px; /* ajusta altura de scroll */
-    overflow-y: auto;
+      /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
+  html, body {
     margin: 0;
-}
-.pagination {
+    padding: 0;
+    background-color: #1e1f28;
+    color: #fff;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .dashboard-contentPage {
+    margin-left: 150px;
+    padding: 0 30px;
+    background-color: #1e1f28;
+    min-height: 100vh;
+    box-sizing: border-box;
+
+    /* Para restringir ancho y centrar, si lo deseas */
+    max-width: 1350px;
+    margin-right: auto;
+ 
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+    color: #00e5ff;
+    text-shadow: 1px 1px 6px #000;
+    margin-bottom: 10px;
+  }
+
+  .page-header p {
+    font-size: 1.1rem;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+
+  .panel {
+    background: #2c2d3f;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3c3d4f;
+    color: #fff;
+    margin-bottom: 30px;
+  }
+
+  .panel-heading {
+    background: #43a047 !important;
+    color: #fff;
+    font-weight: bold;
+    font-size: 17px;
+    text-align: center;
+    padding: 12px 15px;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  .form-neon .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-neon .control-label {
+    color: #ccc;
+  }
+
+  .form-neon .form-control {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid #555;
+    color: #fff;
+  }
+
+  .form-neon .form-control:focus {
+    border-color: #00e5ff;
+    box-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
+    outline: none;
+  }
+
+  .btn-raised {
+    box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .btn-raised.btn-success {
+    background-color: #43a047;
+    border-color: #388e3c;
+    color: #fff;
+  }
+
+  .btn-raised.btn-success:hover {
+    background-color: #388e3c;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    max-height: 400px;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+
+  .table th,
+  .table td {
+    padding: 12px;
+    border-bottom: 1px solid #444;
+    text-align: center;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .table thead th {
+    background: #333;
+    color: #ddd;
+  }
+
+  .label {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+
+  .label-warning {
+    background-color: #f0ad4e;
+    color: #000;
+  }
+
+  .label-success {
+    background-color: #5cb85c;
+    color: #fff;
+  }
+
+  .pagination {
     display: inline-flex;
     padding: 10px 0;
     justify-content: center;
     width: 100%;
-}
+  }
+
+  .pagination li {
+    margin: 0 4px;
+  }
+
+  .pagination li a {
+    display: block;
+    padding: 6px 12px;
+    background-color: #2a2c3b;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    border: 1px solid #444;
+    transition: background 0.2s;
+  }
+
+  .pagination li a:hover {
+    background-color: #333;
+  }
+
+  .pagination li.active a {
+    background-color: #00e5ff;
+    color: #000;
+    border-color: #00aacc;
+  }
 </style>
 
-<section class="full-box dashboard-contentPage content-wrapper">
+<section class="dashboard-contentPage">
+  <div class="page-header">
+    <h1>
+      <i class="zmdi zmdi-email"></i> Centro de Consultas
+    </h1>
+    <p>
+      Envía tus dudas o preguntas y revisa el historial de tus consultas.
+    </p>
     <?php echo $alert; ?>
-    <div class="dashboard-container">
-        <!-- Nueva Consulta -->
-        <div class="consultas-panel">
-            <div class="consultas-heading">
-                <h3 class="panel-title">Nueva Consulta</h3>
-            </div>
-            <div class="consultas-body">
-                <form action="" method="POST" class="form-neon">
-                    <div class="form-group label-floating">
-                        <label class="control-label">Asunto</label>
-                        <input name="asunto" type="text" class="form-control text-center" required>
-                    </div>
-                    <div class="form-group label-floating">
-                        <label class="control-label">Descripción</label>
-                        <textarea name="descripcion" class="form-control text-center" rows="4" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-raised btn-success">
-                        <i class="zmdi zmdi-mail-send"></i> Enviar
-                    </button>
-                </form>
-            </div>
-        </div>
-        <!-- Historial de Consultas -->
-        <div class="consultas-panel">
-            <div class="consultas-heading">
-                <h3 class="panel-title">Historial de Consultas</h3>
-            </div>
-            <div class="table-responsive">
-                <table class="table text-center">
-                    <thead>
-                        <tr><th>#</th><th>Alumno</th><th>Asunto</th><th>Descripción</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($consultas): $i = $start + 1; foreach ($consultas as $row): ?>
-                        <tr>
-                            <td><?php echo $i++; ?></td>
-                            <td><?php echo "{$row['Nombres']} {$row['Apellidos']}"; ?></td>
-                            <td><?php echo $row['Asunto']; ?></td>
-                            <td><?php echo nl2br(htmlspecialchars($row['Mensaje'], ENT_QUOTES, 'UTF-8')); ?></td>
-                            <td><?php echo $row['Fecha']; ?></td>
-                            <td><span class="label label-<?php echo $row['Estado']=='pendiente'?'warning':'success'; ?>"><?php echo $row['Estado']; ?></span></td>
-                            <td><button class="btn btn-danger btn-xs" onclick="deleteConsulta(<?php echo $row['id']; ?>)">Eliminar</button></td>
-                        </tr>
-                        <?php endforeach; else: ?>
-                        <tr class="no-data"><td colspan="7">No hay consultas.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-            <!-- Paginación -->
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
-                    <?php for($p=1; $p<=$totalPages; $p++): ?>
-                    <li<?php if($p==$page) echo ' class="active"'; ?>><a href="?page=<?php echo $p; ?>"><?php echo $p; ?></a></li>
-                    <?php endfor; ?>
-                </ul>
-            </nav>
-        </div>
+  </div>
+
+  <!-- Formulario de Nueva Consulta -->
+  <div class="panel">
+    <div class="panel-heading">
+      <i class="zmdi zmdi-mail-send"></i> Nueva Consulta
     </div>
+    <div class="panel-body">
+      <form action="" method="POST" class="form-neon">
+        <div class="form-group label-floating">
+          <label class="control-label">Asunto *</label>
+          <input name="asunto" type="text" class="form-control" required>
+        </div>
+        <div class="form-group label-floating">
+          <label class="control-label">Descripción *</label>
+          <textarea name="descripcion" class="form-control" rows="4" required></textarea>
+        </div>
+        <p class="text-center">
+          <button type="submit" class="btn btn-raised btn-success">
+            <i class="zmdi zmdi-mail-send"></i> Enviar Consulta
+          </button>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Historial de Consultas -->
+  <div class="panel">
+    <div class="panel-heading">
+      <i class="zmdi zmdi-folder"></i> Historial de Consultas
+    </div>
+    <div class="panel-body">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Alumno</th>
+              <th>Asunto</th>
+              <th>Descripción</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if ($consultas): $i = $start + 1; foreach ($consultas as $row): ?>
+            <tr>
+              <td><?php echo $i++; ?></td>
+              <td><?php echo "{$row['Nombres']} {$row['Apellidos']}"; ?></td>
+              <td><?php echo htmlspecialchars($row['Asunto'], ENT_QUOTES, 'UTF-8'); ?></td>
+              <td style="max-width:200px; white-space: normal; text-align:left;">
+                <?php echo nl2br(htmlspecialchars($row['Mensaje'], ENT_QUOTES, 'UTF-8')); ?>
+              </td>
+              <td><?php echo $row['Fecha']; ?></td>
+              <td>
+                <span class="label label-<?php echo ($row['Estado'] === 'pendiente') ? 'warning' : 'success'; ?>">
+                  <?php echo $row['Estado']; ?>
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-danger btn-xs" onclick="deleteConsulta(<?php echo $row['id']; ?>)">
+                  <i class="zmdi zmdi-delete"></i>
+                </button>
+              </td>
+            </tr>
+            <?php endforeach; else: ?>
+            <tr>
+              <td colspan="7">No hay consultas.</td>
+            </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <?php if ($totalPages > 1): ?>
+      <nav aria-label="Page navigation">
+        <ul class="pagination">
+          <?php for($p = 1; $p <= $totalPages; $p++): ?>
+            <li class="<?php echo ($p === $page) ? 'active' : ''; ?>">
+              <a href="?page=<?php echo $p; ?>"><?php echo $p; ?></a>
+            </li>
+          <?php endfor; ?>
+        </ul>
+      </nav>
+      <?php endif; ?>
+    </div>
+  </div>
 </section>
 
 <script>
-function deleteConsulta(id) {
+  function deleteConsulta(id) {
     if (confirm('¿Eliminar esta consulta?')) {
-        const data = new FormData(); data.append('delete_id', id);
-        fetch(location.href, {method:'POST', body:data}).then(() => location.reload());
+      const data = new FormData();
+      data.append('delete_id', id);
+      fetch(location.href, { method: 'POST', body: data })
+        .then(() => location.reload());
     }
-}
-function updateStatus(id, estado) {
-    const data = new FormData(); data.append('id', id); data.append('estado', estado);
-    fetch(location.href, {method:'POST', body:data}).then(() => location.reload());
-}
+  }
+
+  function updateStatus(id, estado) {
+    const data = new FormData();
+    data.append('id', id);
+    data.append('estado', estado);
+    fetch(location.href, { method: 'POST', body: data })
+      .then(() => location.reload());
+  }
 </script>

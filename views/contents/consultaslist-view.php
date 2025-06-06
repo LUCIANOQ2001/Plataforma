@@ -79,6 +79,22 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!-- Estilos inline para transparencia y margen -->
 <style>
+      /* ------------------------------------ */
+  /* Ocultar íconos de “tres puntos” y “lupa” */
+  /* ------------------------------------ */
+
+  /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+
+  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
+
 .dashboard-contentPage {
     margin-left: 170px;         /* Ajusta al ancho real de tu sidebar */
     padding: 20px;

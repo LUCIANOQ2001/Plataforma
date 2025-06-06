@@ -28,8 +28,8 @@ $recent = $ac->list_recent_by_user_controller($userKey, $userType, 10);
     box-sizing: border-box;
   }
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
+    margin-left: 130px;
+    padding: 0 20px;
     min-height: 100vh;
     background: #1e1f28;
   }
@@ -107,10 +107,30 @@ $recent = $ac->list_recent_by_user_controller($userKey, $userType, 10);
     color: #ccc;
     padding: 30px 0;
   }
+  .btn-back-home i {
+    margin-right: 4px;
+  }
+  .btn-back-home {
+    background-color: #607d8b !important;
+    border-color: #455a64 !important;
+    color: #fff !important;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-block;
+    
+  }
 </style>
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
+        <p class="text-center">
+      <a href="<?= SERVERURL ?>home/" class="btn btn-back-home">
+        <i class="zmdi zmdi-long-arrow-return"></i> Volver
+      </a>
+    </p>
+
     <div class="page-header">
       <h1><i class="zmdi zmdi-notifications-active"></i> Anuncios recientes</h1>
       <hr>

@@ -12,9 +12,15 @@ $materialDisponible       = $insMaterial->count_material_by_estudiante($codigoEs
 ?>
 
 <style>
+    /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
 .dashboard-container {
+  
     margin-left: 230px;
-    padding: 30px 40px;
+    padding: 2 40px;
     max-width: calc(100vw - 170px);  /* ← evitar desbordar el sidebar */
     overflow-x: hidden;
     box-sizing: border-box;

@@ -78,6 +78,12 @@ if (in_array($_SESSION['userType'], ['Administrador','Docente'])) {
     margin-bottom: 30px;
     font-size: 1.1rem;
   }
+ .btn-back-home {
+    background-color: #607d8b !important;
+    border-color:     #455a64 !important;
+    color:            #fff !important;
+    margin-bottom: 20px;
+  }
 
   .panel {  /* aquí es la tabla*/
     background-color: #2b2c3d !important;
@@ -120,6 +126,11 @@ if (in_array($_SESSION['userType'], ['Administrador','Docente'])) {
 <div class="content-wrapper">
   <!-- Encabezado -->
   <div class="container-fluid">
+        <!-- Botón Volver a Sesiones -->
+    <a href="<?php echo SERVERURL; ?>sesion/<?php echo $sesion['CursoId']; ?>/"
+       class="btn btn-back-home btn-sm">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
+    </a>
     <div class="page-header text-center">
       <h1 class="text-titles">
         <i class="zmdi zmdi-check-circle zmdi-hc-fw"></i>

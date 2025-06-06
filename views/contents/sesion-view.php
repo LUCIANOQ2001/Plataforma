@@ -23,12 +23,38 @@ $parts    = explode("/", trim($_GET['views'], "/"));
 $cursoId  = intval($parts[1]);
 
 // 4) Obtener datos del curso
-$stmtCurso = $insCurso->get_curso_by_id_controller($cursoId);
-if ($stmtCurso->rowCount() === 0) {
-    echo '<div class="alert alert-danger">Curso no encontrado.</div>';
-    return;
+// 4) Obtener datos del curso
+$dataCurso = $insCurso->get_curso_by_id_controller($cursoId);
+
+// Si el controlador devolvió un PDOStatement (versión antigua), hacemos lo mismo que antes:
+if ($dataCurso instanceof PDOStatement) {
+    if ($dataCurso->rowCount() === 0) {
+        echo '<div class="alert alert-danger">Curso no encontrado.</div>';
+        return;
+    }
+    $curso = $dataCurso->fetch(PDO::FETCH_ASSOC);
+
+// Si devolvió un array asociativo con los datos de la fila o devolvió null:
+} else {
+    // Si no devolvió nada, error:
+    if (empty($dataCurso)) {
+        echo '<div class="alert alert-danger">Curso no encontrado.</div>';
+        return;
+    }
+    // Si $dataCurso ya es un arreglo asociativo con las columnas del curso:
+    if (isset($dataCurso['Nombre'])) {
+        $curso = $dataCurso;
+    // Si por alguna razón devolvió un array de filas (indexado), tomamos la primera:
+    } elseif (isset($dataCurso[0])) {
+        $curso = $dataCurso[0];
+    } else {
+        // Cualquier otro caso inesperado:
+        echo '<div class="alert alert-danger">Error al obtener datos del curso.</div>';
+        return;
+    }
 }
-$curso = $stmtCurso->fetch(PDO::FETCH_ASSOC);
+
+
 
 // 5) Procesar POST para creación de sesión (solo Admin/Docente)
 $alert = '';
@@ -40,8 +66,18 @@ if (in_array($userType, ['Administrador','Docente'])
     exit;
 }
 
-// 6) Listar sesiones
-$sesiones = $insSesion->list_sesiones_controller($cursoId);
+// 6) Listar sesiones (forzamos que quede un array)
+// 6) Listar sesiones (forzamos que siempre sea array indexado de filas)
+$sesionesRaw = $insSesion->list_sesiones_controller($cursoId);
+
+if ($sesionesRaw instanceof PDOStatement) {
+    // Si devolvió un PDOStatement, hacemos fetchAll para obtener array de filas
+    $sesiones = $sesionesRaw->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    // Si devolvió ya un array de filas (o nulo), lo convertimos a array.
+    $sesiones = is_array($sesionesRaw) ? $sesionesRaw : [];
+}
+
 ?>
 <style>
   html, body {
@@ -56,8 +92,8 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
   }
 
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
+    margin-left: 120px;
+    padding: 0 30px;
     background-color: #1e1f28;
     min-height: 100vh;
     box-sizing: border-box;
@@ -196,7 +232,13 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
         Sesiones de: <?php echo htmlspecialchars($curso['Nombre']); ?>
       </h1>
     </div>
-    <p class="lead"><?php echo htmlspecialchars($curso['Descripcion']); ?></p>
+    <p class="lead">
+      <?php 
+        // Si existe $curso['Descripcion'], lo mostramos; si no, mostramos cadena vacía.
+        echo htmlspecialchars( $curso['Descripcion'] ?? '' ); 
+      ?>
+    </p>
+
     <?php echo $alert; ?>
   </div>
 
@@ -262,16 +304,17 @@ $sesiones = $insSesion->list_sesiones_controller($cursoId);
            <?php endif; ?>
         </p>
       <?php else: ?>
-        <?php foreach($sesiones as $s): ?>
-          <div class="session-card">
-            <div class="header">
-              <?php echo htmlspecialchars($s['Titulo']); ?><br>
-              <small><?php echo date("d/m/Y", strtotime($s['Fecha'])); ?></small>
-            </div>
-            <div class="body">
-              <a href="<?php echo SERVERURL."material/{$s['id']}/"; ?>">
-                <i class="zmdi zmdi-collection-text"></i> Material
-              </a>
+            <?php foreach($sesiones as $s): ?>
+              <div class="session-card">
+                <div class="header">
+                  <!-- Asegúrate de que “Titulo” y “Fecha” coinciden con los campos que trae tu SELECT: -->
+                  <?php echo htmlspecialchars($s['Titulo']); ?><br>
+                  <small><?php echo date("d/m/Y", strtotime($s['Fecha'])); ?></small>
+                </div>
+                <div class="body">
+                  <a href="<?php echo SERVERURL."material/{$s['id']}/"; ?>">
+                    <i class="zmdi zmdi-collection-text"></i> Material
+                  </a>
 
               <!-- Enlace a Evaluación según tipo de usuario -->
               <?php if ($userType === 'Docente' || $userType === 'Administrador'): ?>

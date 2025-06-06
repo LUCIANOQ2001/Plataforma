@@ -89,7 +89,12 @@ $cursoNombre = $cursoInfo['Nombre'] ?? '';
     max-width: 960px;
     margin: 0 auto 20px auto;
   }
-
+  .btn-back-cursos {
+    background-color: #607d8b !important;
+    border-color:     #455a64 !important;
+    color:            #fff !important;
+    margin-bottom: 15px;
+  }
   .panel-heading {
     background: #43a047 !important;
     color: #fff;
@@ -139,6 +144,7 @@ $cursoNombre = $cursoInfo['Nombre'] ?? '';
   .label-warning {
     background-color: #ff9800;
   }
+  
 </style>
 
 <section class="dashboard-contentPage">
@@ -154,12 +160,13 @@ $cursoNombre = $cursoInfo['Nombre'] ?? '';
     </p>
   </div>
 
-  <!-- Botón “Volver a Mis Cursos” -->
-  <div class="container-fluid text-left" style="margin-bottom:15px;">
-    <a href="<?php echo SERVERURL."miscursos/"; ?>" class="btn btn-secondary btn-sm btn-back">
-      <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
-    </a>
-  </div>
+    <!-- Botón Volver a Mis Cursos (para Docente y Estudiante) -->
+    <?php if (in_array($_SESSION['userType'], ['Docente','Estudiante'])): ?>
+      <a href="<?php echo SERVERURL; ?>miscursos/" 
+         class="btn btn-back-cursos btn-sm">
+        <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
+      </a>
+    <?php endif; ?>
 
   <div class="container-fluid">
     <div class="panel panel-success">

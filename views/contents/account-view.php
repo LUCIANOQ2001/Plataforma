@@ -16,7 +16,7 @@ require_once "./controllers/mainController.php";
 $insMain = new mainController();
 
 // Procesar actualización
-if (isset($_POST['username'], $_POST['code'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'], $_POST['code'])) {
     echo $insMain->update_account_controller();
 }
 
@@ -26,15 +26,19 @@ $code  = $parts[1] ?? '';
 
 // Recuperar datos actuales
 $data = $insMain->data_account_controller($code);
-if ($data->rowCount() === 0) {
+if (!$data || $data->rowCount() === 0) {
     echo '<p class="lead text-center">Usuario no encontrado.</p>';
     return;
 }
 $rows = $data->fetch(PDO::FETCH_ASSOC);
 ?>
 
-<!-- Estilos modernos oscuros unificados -->
 <style>
+  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+.btn-search,
+i.zmdi.zmdi-search {
+  display: none !important;
+ }
   html, body {
     margin: 0; padding: 0;
     width: 100%; height: 100%;
@@ -44,8 +48,8 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
     box-sizing: border-box;
   }
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
+    margin-left: 130px;
+    padding: 0 30px;
     min-height: 100vh;
     width: calc(100% - 170px);
     background-color: #1e1f28;
@@ -62,11 +66,25 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
     color: #ccc;
     margin-bottom: 30px;
   }
+  .btn-back-home {
+    background-color: #607d8b !important;
+    border-color: #455a64 !important;
+    color: #fff !important;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-back-home i {
+    margin-right: 6px;
+  }
   .panel {
     background: #2c2d3f;
     border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
     border: 1px solid #3c3d4f;
+    margin-bottom: 30px;
   }
   .panel-heading {
     background-color: #00bcd4 !important;
@@ -86,18 +104,36 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
     border: 1px solid #555 !important;
     color: #fff !important;
   }
-  fieldset, legend {
-    border: none;
-    padding: 0;
-    margin-bottom: 20px;
+  legend {
+    font-size: 1.1rem;
     color: #efebeb;
+    margin-bottom: 20px;
+    padding: 0;
+  }
+  .btn-success, .btn-info {
+    color: #fff !important;
+    font-weight: bold;
+  }
+  .btn-success {
+    background-color: #388e3c !important;
+    border: 1px solid #2e7d32 !important;
+  }
+  .btn-success:hover {
+    background-color: #2e7d32 !important;
+  }
+  .btn-info {
+    background-color: #0288d1 !important;
+    border: 1px solid #0277bd !important;
+  }
+  .btn-info:hover {
+    background-color: #0277bd !important;
   }
 </style>
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
     <div class="page-header">
-      <h1 class="text-titles">
+      <h1>
         <i class="zmdi zmdi-settings zmdi-hc-fw"></i>
         Mi Cuenta
       </h1>
@@ -106,9 +142,13 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
       Aquí puedes actualizar tus datos. Para cambiar la contraseña ingrésala dos veces;
       si no deseas cambiarla deja esos campos en blanco.
     </p>
-  </div>
 
-  <div class="container-fluid">
+    <p class="text-center">
+      <a href="<?= SERVERURL ?>home/" class="btn btn-back-home">
+        <i class="zmdi zmdi-long-arrow-return"></i> Volver
+      </a>
+    </p>
+
     <div class="panel">
       <div class="panel-heading">
         <h3 class="panel-title"><i class="zmdi zmdi-refresh"></i> Actualizar Cuenta</h3>
@@ -116,7 +156,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
       <div class="panel-body">
         <form method="POST" enctype="multipart/form-data" autocomplete="off">
           <fieldset>
-            <legend><i class="zmdi zmdi-key"></i> Datos de la cuenta</legend>
+            <legend><i class="zmdi zmdi-key"></i> Datos de la Cuenta</legend>
             <input type="hidden" name="code" value="<?= htmlspecialchars($rows['Codigo']) ?>">
             <input type="hidden" name="oldusername" value="<?= htmlspecialchars($rows['Usuario']) ?>">
 

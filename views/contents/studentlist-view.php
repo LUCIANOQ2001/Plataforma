@@ -41,6 +41,7 @@ html, body {
   box-sizing: border-box;
   min-height: 100vh;
   background-color: #1e1f28;
+  
 }
 
 /* Encabezado */

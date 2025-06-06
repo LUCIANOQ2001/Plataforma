@@ -2,6 +2,22 @@
 
 <!-- Ajustes inline: margen para el sidebar y corrección de fondo blanco -->
 <style>
+    /* ------------------------------------ */
+  /* Ocultar íconos de “tres puntos” y “lupa” */
+  /* ------------------------------------ */
+
+  /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+
+  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
+
   /* Desplaza el contenido a la derecha para no tapar el sidebar */
   .dashboard-contentPage {
     margin-left: 170px;            /* <-- Cambia 270px al ancho real de tu sidebar */

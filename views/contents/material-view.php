@@ -16,19 +16,19 @@ $parts     = explode("/", trim($_GET['views'], "/"));
 $sesionId  = intval($parts[1]);
 
 $dataSes = $insSesion->get_sesion_by_id_controller($sesionId);
-if($dataSes->rowCount()===0){
+if ($dataSes->rowCount() === 0) {
     echo '<div class="alert alert-danger">Sesión no encontrada.</div>';
     return;
 }
 $ses = $dataSes->fetch(PDO::FETCH_ASSOC);
 
 $alert = '';
-if(in_array($_SESSION['userType'], ['Administrador','Docente']) 
+if (in_array($_SESSION['userType'], ['Administrador','Docente']) 
    && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    if(isset($_POST['add_material'])){
+    if (isset($_POST['add_material'])) {
         $alert = $insMaterial->add_material_controller($sesionId);
     }
-    if(isset($_POST['delete_id'])){
+    if (isset($_POST['delete_id'])) {
         $alert = $insMaterial->delete_material_controller(intval($_POST['delete_id']));
     }
     echo "<script>location.replace(location.pathname);</script>";
@@ -39,6 +39,20 @@ $materials = $insMaterial->list_materials_controller($sesionId);
 ?>
 
 <style>
+  /* ------------------------------------ */
+  /* Ocultar íconos de “tres puntos” y “lupa” */
+  /* ------------------------------------ */
+
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+
+  .btn-search,
+  i.zmdi.zmdi-search {
+    display: none !important;
+  }
+
   html, body {
     background-color: #1e1f28;
     color: #fff;
@@ -50,8 +64,8 @@ $materials = $insMaterial->list_materials_controller($sesionId);
     box-sizing: border-box;
   }
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
+    margin-left: 130px;
+    padding: 0 30px;
     width: calc(100% - 170px);
     background-color: #1e1f28;
     box-sizing: border-box;
@@ -86,7 +100,7 @@ $materials = $insMaterial->list_materials_controller($sesionId);
     padding: 20px;
   }
   .form-control, .control-label, textarea {
-    background: rgba(255,255,255,0.05) !important;
+    background: rgba(255,255,255,0.08) !important;
     border: 1px solid #555 !important;
     color: #fff !important;
   }
@@ -115,10 +129,22 @@ $materials = $insMaterial->list_materials_controller($sesionId);
     border: 1px solid #444;
     text-align: center;
   }
+  .btn-back-home {
+    background-color: #607d8b !important;
+    border-color: #455a64 !important;
+    color: #fff !important;
+    margin-bottom: 20px;
+  }
 </style>
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
+    <!-- Botón Volver a Mis Sesiones -->
+    <a href="<?php echo SERVERURL;?>sesion/<?php echo $ses['CursoId'];?>/"
+       class="btn btn-back-home btn-sm">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
+    </a>
+
     <div class="page-header">
       <h1 class="text-titles">
         <i class="zmdi zmdi-collection-text"></i>
@@ -129,7 +155,7 @@ $materials = $insMaterial->list_materials_controller($sesionId);
     <p class="lead">Aquí ves todos los archivos subidos para esta sesión.</p>
   </div>
 
-  <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
+  <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
   <div class="container-fluid">
     <button class="btn btn-info btn-raised"
             onclick="document.getElementById('formAdd').style.display='block'">
@@ -137,7 +163,7 @@ $materials = $insMaterial->list_materials_controller($sesionId);
     </button>
   </div>
 
-  <div class="container-fluid" id="formAdd">
+  <div class="container-fluid" id="formAdd" style="display:none; margin-top:1rem;">
     <div class="panel panel-info">
       <div class="panel-heading">
         <h3 class="panel-title"><i class="zmdi zmdi-plus-box"></i> Agregar Material</h3>
@@ -181,35 +207,34 @@ $materials = $insMaterial->list_materials_controller($sesionId);
       </div>
       <div class="panel-body">
         <div class="table-responsive">
-          <table class="table table-striped table-hover">
+          <table class="table table-hover">
             <thead>
               <tr>
                 <th>Archivo</th>
                 <th>Fecha</th>
-                <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
+                <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
                   <th>Acciones</th>
                 <?php endif; ?>
               </tr>
             </thead>
             <tbody>
-              <?php if(empty($materials)): ?>
+              <?php if (empty($materials)): ?>
                 <tr>
-                  <td colspan="<?php echo in_array($_SESSION['userType'], ['Administrador','Docente'])?3:2; ?>">
+                  <td colspan="<?php echo in_array($_SESSION['userType'], ['Administrador','Docente']) ? 3 : 2; ?>">
                     No hay material aún.
                   </td>
                 </tr>
-              <?php else: foreach($materials as $m): ?>
+              <?php else: foreach ($materials as $m): ?>
                 <tr>
                   <td>
                     <i class="zmdi zmdi-folder"></i>
-                    <a href="<?php echo SERVERURL . 'attachments/material/' . $m['Archivo']; ?>" 
-                      target="_blank">
+                    <a href="<?php echo SERVERURL . 'attachments/material/' . $m['Archivo']; ?>"
+                       target="_blank">
                       <?php echo htmlspecialchars($m['Titulo']); ?>
                     </a>
                   </td>
-
                   <td><?php echo date("d/m/Y H:i", strtotime($m['Fecha'])); ?></td>
-                  <?php if(in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
+                  <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
                   <td>
                     <form method="POST" style="display:inline">
                       <input type="hidden" name="delete_id" value="<?php echo $m['id']; ?>">

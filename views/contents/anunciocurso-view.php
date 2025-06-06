@@ -21,12 +21,12 @@ $parts   = explode('/', trim($_GET['views'],'/'));
 $cursoId = intval($parts[1] ?? 0);
 
 // 3) Obtenemos el nombre del curso
-$stmtCurso = $cc->get_curso_by_id_controller($cursoId);
-if ($stmtCurso->rowCount() === 0) {
+$curso = $cc->get_curso_by_id_controller($cursoId);
+// Ahora get_curso_by_id_controller devuelve un array asociativo o null
+if ($curso === null) {
     echo '<div class="alert alert-danger text-center">Curso no encontrado.</div>';
     return;
 }
-$curso = $stmtCurso->fetch(PDO::FETCH_ASSOC);
 
 // 4) Procesar POST (solo Admin/Docente)
 $alert = '';
@@ -53,6 +53,12 @@ $anuncios = $ac->list_anuncios_by_curso_controller($cursoId);
 <style>
   .dashboard-contentPage { margin-left:170px; padding:10px; background:#1e1f28; min-height:100vh; color:#fff; }
   .page-header h1 { font-size:28px; color:#00e5ff; margin-bottom:10px; }
+  .btn-back-cursos {
+    background-color: #607d8b !important;
+    border-color:     #455a64 !important;
+    color:            #fff !important;
+    margin-bottom: 15px;
+  }
   .panel { background:#2c2d3f; border-radius:8px; border:1px solid #444; margin-bottom:1rem; }
   .panel-heading { background:#00bcd4; color:#fff; padding:12px 15px; font-weight:bold; }
   .panel-body { padding:20px; }
@@ -65,6 +71,14 @@ $anuncios = $ac->list_anuncios_by_curso_controller($cursoId);
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
+    <!-- Botón Volver a Mis Cursos (para Docente y Estudiante) -->
+    <?php if (in_array($_SESSION['userType'], ['Docente','Estudiante'])): ?>
+      <a href="<?php echo SERVERURL; ?>miscursos/" 
+         class="btn btn-back-cursos btn-sm">
+        <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
+      </a>
+    <?php endif; ?>
+
     <div class="page-header">
       <h1>
         <i class="zmdi zmdi-notifications"></i>

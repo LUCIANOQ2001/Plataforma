@@ -13,6 +13,12 @@ $totalCursos      = $insCurso->count_cursos();
 ?>
 
 <style>
+      /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+
 .dashboard-container {
     margin-left: 170px;         /* Mueve el contenido hacia la derecha para no tapar el sidebar */
     padding: 30px;              /* Espaciado interior general */
