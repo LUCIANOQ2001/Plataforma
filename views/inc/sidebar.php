@@ -10,6 +10,14 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiant
     exit;
 }
 ?>
+<style>
+    /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+
+</style>
 <section class="full-box cover dashboard-sideBar">
   <div class="full-box dashboard-sideBar-bg btn-menu-dashboard"></div>
   <div class="full-box dashboard-sideBar-ct">

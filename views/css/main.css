@@ -33,6 +33,13 @@
     font-weight: normal;
     font-style: normal;
 }
+
+  /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
+  .btn-options,
+  .dropdown-toggle {
+    display: none !important;
+  }
+
 /*============ Estilos generales*/
 body, html{
 	background-color: #da0707;
