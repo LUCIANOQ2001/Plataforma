@@ -214,68 +214,8 @@ html, body {
 
 
 
-/* Contenedor principal */
-/* Contenedor principal */
-.dashboard-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
-    overflow-y: auto; /* Permite desplazamiento */
-    max-height: 100vh; /* Ajusta al tamaño de la pantalla */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
-/* Encabezado centrado */
-.dashboard-header {
-    text-align: center;
-    padding: 15px;
-    
-    color: rgb(228, 15, 15);
-    font-size: 22px;
-    font-weight: bold;
-    border-radius: 10px;
-    box-shadow: 4px 4px 10px rgba(180, 69, 69, 0.3);
-}
 
-/* Contenido alineado */
-.dashboard-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-}
-
-/* Imagen en tarjeta */
-.dashboard-card {
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    margin: 20px 0;
-}
-
-.dashboard-img {
-    width: 100%;
-    border-radius: 10px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.4);
-}
-
-/* Panel de Cursos con efecto 3D */
-.dashboard-panel {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    background: #216cb8;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 6px 6px 15px rgba(0, 0, 0, 0.2), 
-                -6px -6px 15px rgba(255, 255, 255, 0.6);
-    width: 100%;
-    max-width: 800px;
-}
 
 /* Estilo de cada ítem */
 .panel-item {
@@ -410,6 +350,79 @@ html, body {
     text-align: center;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
+/* Paleta de colores basada en el logo */
+:root {
+  --sidebar-red:      #2B2B2B;
+  --sidebar-gold:     #D1B16E;
+  --sidebar-black:    #e00a0a9b;
+  --sidebar-light:    #FFFFFF;
+  --sidebar-hover:    rgba(209, 177, 110, 0.2);
+}
+
+/* Contenedor principal */
+.dashboard-sideBar {
+  background: var(--sidebar-red);
+  color: var(--sidebar-light);
+  box-shadow: 4px 0 10px rgba(0,0,0,0.5);
+}
+
+/* Título */
+.dashboard-sideBar-title {
+  background: var(--sidebar-black);
+  color: var(--sidebar-gold);
+  font-size: 24px;
+  padding: 20px 0;
+  border-bottom: 2px solid var(--sidebar-gold);
+}
+
+/* Información de usuario */
+.dashboard-sideBar-UserInfo {
+  background: var(--sidebar-black);
+  padding: 15px;
+  border-bottom: 1px solid var(--sidebar-gold);
+}
+.dashboard-sideBar-UserInfo img {
+  border: 3px solid var(--sidebar-gold);
+}
+
+/* Menú */
+.dashboard-sideBar-Menu a {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  color: var(--sidebar-light);
+  text-decoration: none;
+  font-size: 16px;
+  transition: background 0.3s ease;
+  border-left: 4px solid transparent;
+}
+.dashboard-sideBar-Menu a:hover {
+  background: var(--sidebar-hover);
+  border-left-color: var(--sidebar-gold);
+}
+
+/* Íconos */
+.dashboard-sideBar-Menu i {
+  margin-right: 12px;
+  font-size: 20px;
+  color: var(--sidebar-gold);
+}
+
+/* Submenús */
+.submenu {
+  background: var(--sidebar-black);
+  border-top: 1px solid var(--sidebar-gold);
+}
+.submenu li a {
+  padding-left: 40px;
+  font-size: 14px;
+}
+
+/* Oculta los tres puntos (mantener inline con tu estilo) */
+.btn-options,
+.dropdown-toggle {
+  display: none !important;
+}
 
 /* Usuario */
 .dashboard-sideBar-UserInfo {
@@ -439,7 +452,7 @@ html, body {
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: white;
+    color: #836423;
     text-decoration: none;
     font-size: 16px;
     transition: background 0.3s ease-in-out;
