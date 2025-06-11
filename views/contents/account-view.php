@@ -35,6 +35,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
 
 <style>
   /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
+  
 .btn-search,
 i.zmdi.zmdi-search {
   display: none !important;

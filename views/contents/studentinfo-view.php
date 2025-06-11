@@ -27,114 +27,152 @@ if (!$data || $data->rowCount() === 0) {
 }
 $rows = $data->fetch(PDO::FETCH_ASSOC);
 ?>
-
 <style>
-    /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
-  .btn-search,
-  i.zmdi.zmdi-search {
-    display: none !important;
+  /* === Paleta de colores actualizada === */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
+
+  /* Reseteo y fondo global */
   html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
-    height: 100%;
+    margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
+    width: 100%; height: 100%;
     overflow-x: hidden;
-    box-sizing: border-box;
+    font-family: 'RobotoCondensed', sans-serif;
   }
 
+  /* Banner con logo de fondo */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-image: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.05;
+    z-index: 0;
+    /* 1) Que no reciba eventos de ratón, para que los clicks pasen al sidebar */
+    pointer-events: none;
+    
+    /* 2) Opcional: ajustarlo sólo al ancho del contenido (dejando libre el sidebar) */
+    left: 270px;               /* mismo ancho de tu sidebar */
+    width: calc(100% - 270px);
+  }
+
+  /* Contenido principal */
   .dashboard-contentPage {
-    margin-left: 130px;
-    padding: 0 30px;
-    background: #1e1f28;
+    position: relative;
+    z-index: 1;
+    margin-left: 180px;   /* espacio para sidebar */
+    width: calc(100% - 270px);
+    padding: 0 3px auto;
     min-height: 100vh;
-    max-width: 1350px;
-    margin-right: auto;
     box-sizing: border-box;
   }
 
+  /* Cabecera de página */
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: 1rem;
   }
-
   .lead {
-    color: #ccc;
+    color: rgba(255,255,255,0.7);
     font-size: 1.1rem;
-    margin-bottom: 30px;
+    margin-bottom: 2rem;
   }
-
+.zmdi-more-vert,
+.zmdi-search,
+.btn-menu-dashboard {
+  display: none !important;
+}
+  /* Botón Volver */
   .btn-back-home {
-    background-color: #607d8b !important;
-    border-color: #455a64 !important;
-    color: #fff !important;
-    margin-bottom: 20px;
-    padding: 8px 14px;
-    font-size: 0.9rem;
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    transition: background .3s;
+  }
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
     text-decoration: none;
-    display: inline-block;
-  }
-  .btn-back-home i {
-    margin-right: 6px;
+    color: var(--text-light) !important;
   }
 
+  /* Panel de formulario */
   .panel {
-    background: #2c2d3f;
-    border: 1px solid #3c3d4f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    margin-bottom: 30px;
-  }
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    width: 100%;
+    max-width: 900px;             /* o el valor que mejor te acomode */
+    margin: 0 auto 2rem;          /* centrado horizontal y separación inferior */
+    box-sizing: border-box;       /* para que padding no aumente el ancho */
 
+  }
   .panel-heading {
-    background: #43a047 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    font-size: 1.2rem;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    padding: .75rem 1rem;
+  }
+  /* Asegura que los campos del formulario también entren */
+  .panel-body .form-group,
+  .panel-body input,
+  .panel-body select,
+  .panel-body textarea {
+    width: 100% !important;
   }
 
-  .panel-body {
-    padding: 20px;
-  }
-
-  .form-control, .control-label {
-    background: rgba(255,255,255,0.05) !important;
+  /* Estilos de formulario */
+  .form-control {
+    background: rgba(0, 0, 0, 0.1) !important;
     border: 1px solid #555 !important;
-    color: #fff !important;
+    color: var(--text-light) !important;
+  }
+  .control-label {
+    color: rgba(255,255,255,0.7) !important;
   }
 
-  .form-group label.control-label {
-    color: #ccc;
-  }
-
-  .btn-success, .btn-info {
-    color: #fff !important;
+  /* Botones de acción */
+  .btn-success,
+  .btn-info {
     font-weight: bold;
+    border-radius: .3rem;
   }
   .btn-success {
-    background-color: #388e3c !important;
-    border: 1px solid #2e7d32 !important;
+    background: var(--hover-accent) !important;
+    border: 1px solid var(--primary-accent) !important;
+    color: var(--text-light) !important;
   }
   .btn-success:hover {
-    background-color: #2e7d32 !important;
+    background: var(--primary-accent) !important;
   }
   .btn-info {
-    background-color: #0288d1 !important;
-    border: 1px solid #0277bd !important;
+    background: var(--primary-accent) !important;
+    border: 1px solid var(--primary-accent) !important;
+    color: var(--text-light) !important;
   }
   .btn-info:hover {
-    background-color: #0277bd !important;
+    background: var(--hover-accent) !important;
   }
-
 </style>
+
 <div class="dashboard-banner"></div>
 
 <section class="dashboard-contentPage">
@@ -150,7 +188,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
       </a>
     </p>
 
-    <div class="panel panel-success">
+    <div class="panel">
       <div class="panel-heading">
         <h3 class="panel-title"><i class="zmdi zmdi-refresh"></i> Actualizar Datos</h3>
       </div>
@@ -183,7 +221,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
               </div>
             </div>
           </fieldset>
-          <p class="text-center" style="margin-top:20px;">
+          <p class="text-center" style="margin-top:2rem;">
             <button type="submit" class="btn btn-success btn-raised btn-sm">
               <i class="zmdi zmdi-refresh"></i> Guardar Cambios
             </button>
