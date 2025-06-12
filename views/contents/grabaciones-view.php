@@ -33,33 +33,102 @@ $grabs = $insGrab->list_grabaciones_by_sesion_controller($sesionId);
     --text-light: #FFFFFF;
     --hover-accent: rgba(209,177,110,0.2);
   }
-  html, body { margin:0; padding:0; background:var(--primary-bg); color:var(--text-light);
-      width:100%; height:100%; overflow-x:hidden; font-family:'RobotoCondensed',sans-serif; }
-  .dashboard-banner { position:fixed; top:0; left:270px;
-      width:calc(100% - 270px); height:100%; background:url('<?=SERVERURL?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
-      opacity:0.05; pointer-events:none; z-index:0; }
-  .dashboard-contentPage { position:relative; z-index:1; margin-left:180px;
-      width:calc(100% - 270px); padding:0 30px auto; min-height:100vh; box-sizing:border-box; }
+  html, body { 
+    margin:0; 
+    padding:0; 
+    background:var(--primary-bg);
+    color:var(--text-light);
+    width:100%; height:100%;
+    overflow-x:hidden; 
+    font-family:'RobotoCondensed',sans-serif; 
+  }
+
+  .dashboard-banner { 
+    position:fixed;
+    top:0;
+    left:270px;
+    width:calc(100% - 270px);
+    height:100%;
+    background:url('<?=SERVERURL?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity:0.05; pointer-events:none; z-index:0; 
+  }
+  .dashboard-contentPage { 
+    position:relative; 
+    z-index:1;
+    margin-left:180px;
+    width:calc(100% - 270px);
+    padding:0 30px auto;
+    min-height:100vh;
+    box-sizing:border-box; 
+  }
   .btn-options, .dropdown-toggle, .btn-search, i.zmdi-zmdi-search, .zmdi-more-vert, .btn-menu-dashboard { display:none!important; }
-  .page-header h1 { font-size:2rem; color:var(--primary-accent);
-      text-shadow:2px 2px 8px rgba(0,0,0,0.7); margin-bottom:0.5rem; text-align:center; }
-  .lead { text-align:center; font-size:1.1rem; color:rgba(255,255,255,0.7);
-      margin:0 auto 2rem; }
-  .btn-back-home { background:var(--primary-accent)!important; color:var(--text-light)!important;
-      border:none!important; border-radius:.3rem; padding:.5rem 1rem; font-size:.9rem;
-      display:inline-block; margin-bottom:1.5rem; transition:background .3s; }
-  .btn-back-home:hover { background:var(--hover-accent)!important; text-decoration:none; }
-  form.grab-form { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; }
+  .page-header h1 { 
+    font-size:2rem;
+    color:var(--primary-accent);
+    text-shadow:2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom:0.5rem;
+    text-align:center; 
+  }
+  .lead {
+    text-align:center;
+    font-size:1.1rem;
+    color:rgba(255,255,255,0.7);
+    margin:0 auto 2rem; }
+  .btn-back-home {
+    background:var(--primary-accent)!important;
+    color:var(--text-light)!important;
+    border:none!important;
+    border-radius:.3rem;
+    padding:.5rem 1rem;
+    font-size:.9rem;
+    display:inline-block;
+    margin-bottom:1.5rem;
+    transition:background .3s;
+  }
+  .btn-back-home:hover {
+    background:var(--hover-accent)!important;
+    text-decoration:none;
+  }
+  form.grab-form {
+    display:flex;
+    align-items:center;
+    gap:1rem;
+    margin-bottom:1rem; 
+  }
   form.grab-form input[type="file"], form.grab-form label, form.grab-form button {
-      background:var(--secondary-bg); color:var(--text-light)!important;
-      border:1px solid var(--primary-accent)!important; border-radius:.3rem;
-      padding:.5rem .75rem; }
-  table.grab-table { width:100%; border-collapse:collapse; margin-top:1rem; }
-  .grab-table th, .grab-table td { padding:.75rem; border-bottom:1px solid rgba(255,255,255,0.2); }
-  .grab-table th { background:var(--primary-accent); color:var(--text-light); text-align:left; }
-  .grab-table td a { color:var(--text-light); text-decoration:none; }
-  .grab-table td .delete-btn { color:#b71c1c; cursor:pointer; }
-  @media(max-width:768px) { .dashboard-contentPage { margin-left:0; width:100%; padding:1rem; } }
+    background:var(--secondary-bg);
+    color:var(--text-light)!important;
+    border:1px solid var(--primary-accent)!important;
+    border-radius:.3rem;
+    padding:.5rem .75rem; 
+  }
+  table.grab-table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:1rem; 
+  }
+  .grab-table th, .grab-table td { 
+    padding:.75rem;
+    border-bottom:1px solid rgba(255,255,255,0.2); 
+  }
+  .grab-table th {
+    background:var(--primary-accent);
+    color:var(--text-light);
+    text-align:left; 
+  }
+  .grab-table td a {
+    color:var(--text-light);
+    text-decoration:none; 
+  }
+  .grab-table td .delete-btn {
+    color:#b71c1c;
+    cursor:pointer; 
+  }
+  @media(max-width:768px) { .dashboard-contentPage {
+    margin-left:0;
+    width:100%;
+    padding:1rem; } 
+  }
 </style>
 <div class="dashboard-banner"></div>
 <section class="dashboard-contentPage">

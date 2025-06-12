@@ -38,246 +38,211 @@ $alumnos = $cc->list_estudiantes_por_curso_controller($cursoId);
 // 6) Procesar POST: guardar todas las notas enviadas
 $alert = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['notas'])) {
-    // $_POST['notas'][ <EstudianteCodigo> ][ <SesionId> ] = <nota>
     foreach ($_POST['notas'] as $estCodigo => $arrayNotas) {
         foreach ($arrayNotas as $sesId => $valorNota) {
-            $sesIdInt   = intval($sesId);
-            $notaFloat  = floatval(number_format(floatval($valorNota), 2, '.', ''));
-            // Guardar (insertar/actualizar) en tabla nota_sesion
-            $alert = $nc->save_nota_controller($cursoId, $sesIdInt, $estCodigo, $notaFloat);
+            $sesIdInt  = intval($sesId);
+            $notaFloat = floatval(number_format(floatval($valorNota), 2, '.', ''));
+            $alert     = $nc->save_nota_controller($cursoId, $sesIdInt, $estCodigo, $notaFloat);
         }
     }
-    // Redirect after POST
     echo "<script>location.replace(location.pathname);</script>";
     exit;
 }
 
-// 7) Precargar valores existentes en $notasExistentes[<EstCodigo>][<SesId>] = <nota>
+// 7) Precargar notas existentes
 $notasExistentes = [];
 foreach ($alumnos as $al) {
     $estCodigo = $al['Codigo'];
     foreach ($sesiones as $ses) {
-        $sesId = intval($ses['id']);
+        $sesId    = intval($ses['id']);
         $filaNota = $nc->get_nota_by_sesion_estudiante_controller($sesId, $estCodigo);
-        if ($filaNota !== null) {
-            $notasExistentes[$estCodigo][$sesId] = floatval($filaNota['Nota']);
-        } else {
-            $notasExistentes[$estCodigo][$sesId] = '';
-        }
+        $notasExistentes[$estCodigo][$sesId] = $filaNota !== null
+            ? floatval($filaNota['Nota'])
+            : '';
     }
 }
 ?>
 <style>
-  /* ------------------------------------ */
-  /* Ocultar íconos de “tres puntos” y “lupa” */
-  /* ------------------------------------ */
-
-  /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
-  .btn-options,
-  .dropdown-toggle {
-    display: none !important;
+  /* ==== Paleta de colores ==== */
+  :root {
+    --primary-bg:     #2B2B2B;
+    --primary-accent: #D1B16E;
+    --secondary-bg:   rgba(174,12,12,0.61);
+    --text-light:     #FFFFFF;
+    --hover-accent:   rgba(209,177,110,0.2);
   }
-
-  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
-  .btn-search,
-  i.zmdi.zmdi-search {
-    display: none !important;
-  }
-
-  /* ------------------------------------ */
-  /* El resto de tu CSS habitual queda abajo */
-  /* ------------------------------------ */
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
+  /* Logo de fondo */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 150px;
+    width: calc(100% - 150px);
     height: 100%;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Ocultar buscador y menús extra */
+  .btn-search, i.zmdi.zmdi-search,
+  .btn-options, .dropdown-toggle,
+  .zmdi-more-vert, .btn-menu-dashboard {
+    display: none !important;
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
+    width: 100%; height: 100%;
     overflow-x: hidden;
+    font-family: 'RobotoCondensed', sans-serif;
     box-sizing: border-box;
   }
-
   .dashboard-contentPage {
-    margin-left: 150px;
-    padding: 30px;
-    background-color: #1e1f28;
+    position: relative; z-index: 1;
+    margin-left: 145px;
+    padding: auto;
     min-height: 100vh;
     box-sizing: border-box;
-
-    /* Para restringir ancho y centrar, si lo deseas */
-    max-width: 1350px;
-    margin-right: auto;
- 
+    width: 90%;
   }
-
-  .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
-  }
-
-  .page-header p {
-    font-size: 1.1rem;
-    color: #ccc;
-    margin-bottom: 20px;
-  }
-
   .btn-back-home {
-    background-color: #607d8b !important;
-    border-color:     #455a64 !important;
-    color:            #fff !important;
-    margin-bottom: 20px;
-    padding: 10px 15px;
+    background: var(--primary-accent) !important;
+    color: var(--primary-bg) !important;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
     text-decoration: none;
     display: inline-block;
+    margin-bottom: 20px;
+    transition: background .3s;
   }
-  .btn-back-home i {
-    margin-right: 6px;
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
   }
-
-  .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
-    color: #fff;
-    margin-bottom: 30px;
-  }
-
-  .panel-heading {
-    background: #43a047 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
+  .page-header h1 {
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: .5rem;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
   }
-
+  .page-header p {
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  .panel {
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .panel-heading {
+    background: var(--primary-accent) !important;
+    color: var(--primary-bg) !important;
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+  }
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
-
   .table-responsive {
     overflow-x: auto;
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
+    border-radius: .75rem;
   }
-
   .notas-table {
     width: 100%;
     border-collapse: collapse;
     min-width: 600px;
   }
-
   .notas-table th,
   .notas-table td {
-    padding: 12px;
-    border-bottom: 1px solid #444;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
     text-align: center;
-    color: #fff;
+    color: var(--text-light);
     white-space: nowrap;
   }
-
   .notas-table thead th {
-    background: #333;
+    background: var(--primary-bg);
+    color: var(--primary-accent);
   }
-
   .notas-table input[type="number"] {
     width: 60px;
-    background-color: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,0.05);
     border: 1px solid #555;
-    color: #fff;
+    color: var(--text-light);
     text-align: center;
     padding: 6px;
-    border-radius: 4px;
+    border-radius: .3rem;
   }
-
   .notas-table input[type="number"]:focus {
-    border-color: #00e5ff;
-    box-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 5px rgba(209,177,110,0.5);
     outline: none;
   }
-
   .promedio-cell {
     font-weight: bold;
     color: #ffeb3b;
-    background: #2a2c3b;
+    background: var(--primary-bg);
   }
-
   .btn-guardar {
-    background-color: #03a9f4;
-    border-color: #0288d1;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 4px;
+    background: var(--primary-accent);
+    color: var(--primary-bg);
+    border: none;
+    border-radius: .3rem;
+    padding: .6rem 1.2rem;
     font-size: 1rem;
-    text-shadow: 1px 1px 6px #000;
-    margin-top: 15px;
+    transition: background .3s;
   }
   .btn-guardar:hover {
-    background-color: #0288d1;
+    background: var(--hover-accent);
   }
-
   @media (max-width: 768px) {
-    .notas-table th,
-    .notas-table td {
-      padding: 8px;
-      font-size: 0.9rem;
-    }
-    .notas-table input[type="number"] {
-      width: 50px;
-    }
-    .dashboard-contentPage {
-      max-width: 100%;
-      margin-left: 170px;
-    }
+    .dashboard-contentPage { margin-left: 0; padding: 1rem; }
+    .dashboard-banner { left: 0; width: 100%; }
+    .notas-table { min-width: auto; }
   }
 </style>
 
+<div class="dashboard-banner"></div>
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
-    <!-- Botón “Volver a Mis Cursos” -->
-    <a href="<?php echo SERVERURL; ?>miscursos/" class="btn-back-home">
+    <a href="<?= SERVERURL ?>miscursos/" class="btn-back-home">
       <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
     </a>
-
     <div class="page-header">
       <h1><i class="zmdi zmdi-chart"></i> Reporte de Notas – <?= htmlspecialchars($curso['Nombre']) ?></h1>
-      <p>
-        Registra aquí la nota (0–20) de cada estudiante por cada sesión del curso.
-        El promedio (sobre 20) se calculará automáticamente.
-      </p>
+      <p>Registra aquí la nota (0–20) de cada estudiante por sesión. El promedio se calculará automáticamente.</p>
       <?= $alert; ?>
     </div>
   </div>
 
   <div class="container-fluid">
     <?php if (empty($sesiones)): ?>
-      <div class="panel panel-info">
-        <div class="panel-heading">Atención</div>
+      <div class="panel"><div class="panel-heading">Atención</div>
         <div class="panel-body text-center">
-          No hay sesiones registradas para este curso.<br>
-          Primero crea sesiones desde la sección “Sesiones”.
+          No hay sesiones para este curso. Crea sesiones primero.
         </div>
       </div>
     <?php elseif (empty($alumnos)): ?>
-      <div class="panel panel-info">
-        <div class="panel-heading">Atención</div>
+      <div class="panel"><div class="panel-heading">Atención</div>
         <div class="panel-body text-center">
-          No hay estudiantes inscritos en este curso.<br>
-          Asegúrate de que haya alumnos antes de registrar notas.
+          No hay estudiantes inscritos en este curso.
         </div>
       </div>
     <?php else: ?>
       <form method="POST" autocomplete="off">
-        <div class="panel panel-info">
+        <div class="panel">
           <div class="panel-heading">
-            <i class="zmdi zmdi-edit"></i> Ingresar / Actualizar Notas (0–20)
+            <i class="zmdi zmdi-edit"></i> Ingresar / Actualizar Notas
           </div>
           <div class="panel-body">
             <div class="table-responsive">
@@ -287,50 +252,37 @@ foreach ($alumnos as $al) {
                     <th>Estudiante</th>
                     <?php foreach ($sesiones as $ses): ?>
                       <th>
-                        <?= htmlspecialchars($ses['Titulo']); ?><br>
-                        <small><?= date("d/m/Y", strtotime($ses['Fecha'])); ?></small>
+                        <?= htmlspecialchars($ses['Titulo']) ?><br>
+                        <small><?= date("d/m/Y", strtotime($ses['Fecha'])) ?></small>
                       </th>
                     <?php endforeach; ?>
-                    <th>Promedio<br>(0–20)</th>
+                    <th>Promedio</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <?php foreach ($alumnos as $al): ?>
-                    <?php
-                      $estCod    = $al['Codigo'];
-                      $sumaNotas = 0.0;
-                      $countSes  = count($sesiones);
-                    ?>
+                  <?php foreach ($alumnos as $al): 
+                    $estCod   = $al['Codigo'];
+                    $sumNotas = 0; $count = count($sesiones);
+                  ?>
                     <tr>
-                      <td style="text-align: left;">
-                        <?= htmlspecialchars($al['Nombres'] . ' ' . $al['Apellidos']); ?>
+                      <td style="text-align:left;">
+                        <?= htmlspecialchars("{$al['Nombres']} {$al['Apellidos']}") ?>
                       </td>
-                      <?php foreach ($sesiones as $ses): ?>
-                        <?php
-                          $sesId        = intval($ses['id']);
-                          $valorPrefill = $notasExistentes[$estCod][$sesId] ?? '';
-                          $sumaNotas   += is_numeric($valorPrefill) ? floatval($valorPrefill) : 0;
-                        ?>
-                        <td>
-                          <input
-                            type="number"
-                            name="notas[<?= $estCod ?>][<?= $sesId ?>]"
-                            step="0.01"
-                            min="0"
-                            max="20"
-                            value="<?= $valorPrefill ?>"
-                            placeholder="---"
-                          >
-                        </td>
-                      <?php endforeach; ?>
-                      <?php
-                        $promedio = ($countSes > 0)
-                                    ? round($sumaNotas / $countSes, 2)
-                                    : 0.00;
+                      <?php foreach ($sesiones as $ses): 
+                        $sesId    = intval($ses['id']);
+                        $val      = $notasExistentes[$estCod][$sesId] ?? '';
+                        $sumNotas += is_numeric($val) ? $val : 0;
                       ?>
-                      <td class="promedio-cell">
-                        <?= number_format($promedio, 2, '.', ''); ?>
-                      </td>
+                        <td>
+                          <input type="number"
+                                 name="notas[<?= $estCod ?>][<?= $sesId ?>]"
+                                 step="0.01" min="0" max="20"
+                                 value="<?= $val ?>" placeholder="—">
+                        </td>
+                      <?php endforeach;
+                        $prom = $count>0 ? round($sumNotas/$count,2) : 0;
+                      ?>
+                      <td class="promedio-cell"><?= number_format($prom,2,'.','') ?></td>
                     </tr>
                   <?php endforeach; ?>
                 </tbody>

@@ -132,7 +132,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
   }
   .panel-heading {
     background: var(--primary-accent) !important;
-    color: var(--text-light) !important;
+    color: #2B2B2B;
     padding: .75rem 1rem;
     font-weight: bold;
     text-align: center;
@@ -149,7 +149,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
   }
   legend {
     font-size: 1.2rem;
-    color: var(--text-light);
+    color:rgb(0, 0, 0);
     margin-bottom: 1rem;
   }
   .form-control {

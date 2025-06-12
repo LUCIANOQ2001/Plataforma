@@ -74,124 +74,177 @@ if ($foroId > 0) {
 ?>
 
 <style>
-  
-  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
-  .btn-search,
-  i.zmdi.zmdi-search {
-    display: none !important;
+  /* ==== Paleta y reset ==== */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
   html, body {
-    background-color: #1e1f28;
-    color: #fff;
     margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
     width: 100%; height: 100%;
     overflow-x: hidden;
     box-sizing: border-box;
+    font-family: 'RobotoCondensed', sans-serif;
   }
+  /* Banner logo de fondo */
+  .dashboard-banner {
+    position: fixed; top: 0; left: 270px;
+    width: calc(100% - 270px); height: 100%;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05; pointer-events: none; z-index: 0;
+  }
+  /* Contenedor principal */
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 0 30px;
-    width: calc(100% - 170px);
-    background-color: #1e1f28;
+    position: relative; z-index: 1;
+    margin-left: 180px;
+    width: calc(100% - 270px);
+    padding: 0 20px auto;
+    min-height: 100vh;
     box-sizing: border-box;
   }
+  /* Ocultar buscador y menús innecesarios */
+  .btn-options,
+  .dropdown-toggle,
+  .btn-search,
+  i.zmdi-zmdi-search,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
+  }
+  /* Encabezados */
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: .5rem;
+    text-align: center;
   }
   .lead {
-    color: #ccc;
+    text-align: center;
     font-size: 1.1rem;
-    margin-bottom: 30px;
+    color: rgba(255,255,255,0.7);
+    margin: 0 auto 2rem;
+    max-width: 800px;
   }
+  /* Botones de regreso */
+  .btn-back-home {
+    background: var(--primary-accent) !important;
+    color:  #2B2B2B;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    margin-right: .5rem;
+    font-size: .9rem;
+  }
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
+    color:  #2B2B2B !important;
+    text-decoration: none;
+  }
+  /* Paneles */
   .panel {
-    background: #2c2d3f;
-    border: 1px solid #3c3d4f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     margin-bottom: 1rem;
+    overflow: hidden;
   }
   .panel-heading {
-    background-color: #00bcd4;
-    color: #fff;
+    background: var(--primary-accent) !important;
+    color:  #2B2B2B;
     font-weight: bold;
-    font-size: 17px;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    padding: 1rem;
+    font-size: 1.1rem;
   }
   .panel-body {
-    padding: 20px;
-    color: #fff;
+    padding: 1.5rem;
   }
   .panel-footer {
-    padding: 12px 15px;
-    background: #232334;
-    border-top: 1px solid #444;
-    border-bottom-left-radius: 12px;
-    border-bottom-right-radius: 12px;
+    background: rgba(0,0,0,0.2);
+    padding: .75rem 1rem;
     text-align: right;
   }
+  /* Form-control y labels */
   .form-control, .control-label, textarea {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid #555 !important;
-    color: #fff !important;
+    color: var(--text-light) !important;
   }
+  /* Estilo para input file */
+  input[type="file"].form-control {
+    background: var(--secondary-bg) !important;
+    border: 1px solid var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    padding: .5rem;
+    border-radius: .3rem;
+    cursor: pointer;
+  }
+  input[type="file"].form-control::-webkit-file-upload-button {
+    background: var(--primary-accent);
+    color: var(--primary-bg);
+    border: none;
+    padding: .3rem .6rem;
+    border-radius: .3rem;
+    cursor: pointer;
+    transition: background .3s;
+  }
+  input[type="file"].form-control::-webkit-file-upload-button:hover {
+    background: var(--hover-accent);
+  }
+  /* Botones primarios */
   .btn-info, .btn-success, .btn-danger {
-    color: #fff !important;
+    color: #2B2B2B !important;
     font-weight: bold;
+    border-radius: .3rem;
   }
   .btn-info {
-    background-color: #0288d1 !important;
-    border: 1px solid #0277bd !important;
+    background: var(--primary-accent) !important;
+    border: 1px solid var(--primary-accent) !important;
   }
   .btn-success {
-    background-color: #388e3c !important;
-    border: 1px solid #2e7d32 !important;
+    background: var(--hover-accent) !important;
+    border: 1px solid var(--primary-accent) !important;
   }
   .btn-danger {
-    background-color: #d32f2f !important;
+    background: #d32f2f !important;
     border: 1px solid #b71c1c !important;
-  }
-  .btn-back-home {
-    background-color: #607d8b !important;
-    border-color:     #455a64 !important;
-    color:            #fff !important;
-    margin-bottom: 20px;
   }
 </style>
 
+<div class="dashboard-banner"></div>
+
 <section class="dashboard-contentPage">
   <div class="container-fluid">
-    <!-- Botón para volver a Mis Sesiones -->
+    <!-- Botones de regreso -->
     <a href="<?php echo SERVERURL;?>sesion/<?php echo $ses['CursoId']; ?>/"
-       class="btn btn-back-home btn-sm">
-      <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
-    </a>
+       class="btn-back-home"><i class="zmdi zmdi-arrow-left"></i> Mis Sesiones</a>
+    <a href="<?php echo SERVERURL;?>foro/<?php echo $sesionId; ?>/"
+       class="btn-back-home"><i class="zmdi zmdi-arrow-left"></i> Foros</a>
 
     <div class="page-header">
-      <h1 class="text-titles">
-        <i class="zmdi zmdi-comment-text"></i>
-        Foros – <?php echo htmlspecialchars($ses['Titulo']); ?>
-      </h1>
-      <?php echo $alert; ?>
+      <h1><i class="zmdi zmdi-comment-text"></i> Foros – <?= htmlspecialchars($ses['Titulo']) ?></h1>
+      <?= $alert ?>
     </div>
     <p class="lead">
       <?php if ($foroId > 0): ?>
         Aquí puedes ver el contenido del foro y sus comentarios.
       <?php else: ?>
         <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
-          Aquí puedes crear nuevos foros para esta sesión.
+          Crea nuevos foros para esta sesión.
         <?php else: ?>
-          Aquí se muestran los foros disponibles. Haz clic en “Ver Foro” para participar.
+          Selecciona “Ver Foro” para participar.
         <?php endif; ?>
       <?php endif; ?>
     </p>
   </div>
 
-  <!-- ====== FORMULARIO “Nuevo Foro” (solo Admin/Docente) ====== -->
   <?php if ($foroId === 0 && in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
     <div class="container-fluid">
       <button class="btn btn-info btn-raised"
@@ -201,10 +254,8 @@ if ($foroId > 0) {
     </div>
 
     <div class="container-fluid" id="formAdd" style="display:none; margin-top:10px;">
-      <div class="panel panel-info">
-        <div class="panel-heading">
-          <h3 class="panel-title"><i class="zmdi zmdi-plus-box"></i> Agregar Foro</h3>
-        </div>
+      <div class="panel">
+        <div class="panel-heading">Agregar Foro</div>
         <div class="panel-body">
           <form method="POST" enctype="multipart/form-data" autocomplete="off">
             <input type="hidden" name="add_foro" value="1">
@@ -222,32 +273,20 @@ if ($foroId > 0) {
                 </div>
               </div>
             </div>
-
-            <div class="row">
-              <div class="col-sm-12">
-                <div class="form-group label-floating">
-                  <label class="control-label">Descripción *</label>
-                  <textarea name="descripcion" class="form-control" rows="3" required></textarea>
-                </div>
-              </div>
+            <div class="form-group label-floating">
+              <label class="control-label">Descripción *</label>
+              <textarea name="descripcion" class="form-control" rows="3" required></textarea>
             </div>
-
-            <div class="row">
-              <div class="col-sm-4">
-                <div class="form-group label-floating">
-                  <label class="control-label">Fecha de cierre (opcional)</label>
-                  <input type="datetime-local" name="fechacierre" class="form-control">
-                </div>
-              </div>
-              <div class="col-sm-8 text-right">
-                <button type="submit" class="btn btn-success btn-raised">
-                  <i class="zmdi zmdi-floppy"></i> Crear Foro
-                </button>
-                <button type="button" class="btn btn-default" 
-                        onclick="document.getElementById('formAdd').style.display='none'">
-                  Cancelar
-                </button>
-              </div>
+            <div class="form-group label-floating">
+              <label class="control-label">Fecha de cierre (opcional)</label>
+              <input type="datetime-local" name="fechacierre" class="form-control">
+            </div>
+            <div class="text-right">
+              <button type="submit" class="btn btn-success"><i class="zmdi zmdi-floppy"></i> Crear</button>
+              <button type="button" class="btn btn-danger"
+                      onclick="document.getElementById('formAdd').style.display='none'">
+                Cancelar
+              </button>
             </div>
           </form>
         </div>
@@ -255,224 +294,157 @@ if ($foroId > 0) {
     </div>
   <?php endif; ?>
 
-
-  <!-- ====== LISTADO DE FOROS ====== -->
+  <!-- LISTADO DE FOROS -->
   <?php if ($foroId === 0): ?>
     <div class="container-fluid" style="margin-top:15px;">
       <?php if (empty($foros)): ?>
-        <div class="alert alert-info text-center">No hay foros en esta sesión.</div>
+        <div class="panel"><div class="panel-body text-center">No hay foros en esta sesión.</div></div>
       <?php else: ?>
         <?php foreach ($foros as $f): ?>
-          <div class="panel panel-success">
-            <div class="panel-heading"><?php echo htmlspecialchars($f['Titulo']); ?></div>
+          <div class="panel">
+            <div class="panel-heading"><?= htmlspecialchars($f['Titulo']) ?></div>
             <div class="panel-body">
-              <p style="font-size:0.9rem; color:#ccc;">
-                Creado: <?php echo htmlspecialchars($f['FechaSubida']); ?>
+              <p style="font-size:.9rem; color:rgba(255,255,255,0.7);">
+                Creado: <?= htmlspecialchars($f['FechaSubida']) ?>
                 <?php if (!empty($f['FechaCierre'])): ?>
-                  | Cierre: <?php echo htmlspecialchars($f['FechaCierre']); ?>
+                  | Cierre: <?= htmlspecialchars($f['FechaCierre']) ?>
                 <?php endif; ?>
               </p>
-              <p><?php echo nl2br(htmlspecialchars(substr($f['Descripcion'],0,200))); ?>…</p>
+              <p><?= nl2br(htmlspecialchars(substr($f['Descripcion'],0,200))) ?>…</p>
               <?php if (!empty($f['Archivo'])): ?>
-                <p>
-                  <strong>Archivo:</strong>
-                  <a href="<?php echo SERVERURL.'attachments/foros/'.urlencode($f['Archivo']); ?>"
-                     target="_blank">
-                    <?php echo htmlspecialchars($f['Archivo']); ?>
-                  </a>
+                <p><strong>Archivo:</strong>
+                  <a href="<?= SERVERURL.'attachments/foros/'.urlencode($f['Archivo']) ?>"
+                     target="_blank"><?= htmlspecialchars($f['Archivo']) ?></a>
                 </p>
               <?php endif; ?>
             </div>
             <div class="panel-footer">
-              <a href="<?php echo SERVERURL."foro/{$sesionId}/{$f['id']}/"; ?>"
-                 class="btn btn-info btn-sm btn-raised">
-                <i class="zmdi zmdi-eye"></i> Ver Foro
-              </a>
+              <a href="<?= SERVERURL."foro/{$sesionId}/{$f['id']}/" ?>"
+                 class="btn btn-info btn-sm"><i class="zmdi zmdi-eye"></i> Ver Foro</a>
             </div>
           </div>
         <?php endforeach; ?>
       <?php endif; ?>
     </div>
-    <?php return; // Fin de listado. Si estamos en lista, no cargamos detalle. ?>
+    <?php return; ?>
   <?php endif; ?>
 
-
-  <!-- ====== DETALLE DE UN FORO (cuando $foroId > 0) ====== -->
+  <!-- DETALLE DE UN FORO -->
   <div class="container-fluid" style="margin-top:15px;">
-    <!-- Botón para volver a Foros de esta sesión -->
-    <a href="<?php echo SERVERURL."foro/{$sesionId}/"; ?>"
-       class="btn btn-info btn-sm btn-raised btn-back-home">
-      <i class="zmdi zmdi-arrow-left"></i> Volver a Foros
-    </a>
 
-    <!-- Botón para volver a Mis Sesiones -->
-    <a href="<?php echo SERVERURL."sesion/{$ses['CursoId']}/"; ?>"
-       class="btn btn-back-home btn-sm" style="margin-left:10px;">
-      <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
-    </a>
 
-    <!-- Si es Admin/Docente, mostramos botones de Eliminar/Editar -->
     <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
-      <div class="text-right" style="margin-top:10px; margin-bottom:10px;">
+      <div class="text-right" style="margin:1rem 0;">
         <form method="POST" style="display:inline;">
-          <!-- hidden delete_foro imprimirá el ID del foro a eliminar -->
-          <input type="hidden" name="delete_foro" value="<?php echo $foro['id']; ?>">
-          <button type="submit" class="btn btn-danger btn-sm btn-raised"
-                  onclick="return confirm('¿Eliminar este foro?');">
-            <i class="zmdi zmdi-delete"></i> Eliminar
-          </button>
+          <input type="hidden" name="delete_foro" value="<?= $foro['id'] ?>">
+          <button type="submit" class="btn btn-danger btn-sm"><i class="zmdi zmdi-delete"></i> Eliminar</button>
         </form>
-        <button id="btnEdit" class="btn btn-success btn-sm btn-raised">
-          <i class="zmdi zmdi-edit"></i> Editar
-        </button>
+        <button id="btnEdit" class="btn btn-success btn-sm"><i class="zmdi zmdi-edit"></i> Editar</button>
       </div>
 
-      <!-- Formulario de edición (inicialmente oculto) -->
-      <div id="editForm" style="display:none; margin-bottom:15px;">
-        <div class="panel panel-info">
+      <div id="editForm" style="display:none; margin-bottom:1rem;">
+        <div class="panel">
           <div class="panel-heading">Editar Foro</div>
           <div class="panel-body">
             <form method="POST" enctype="multipart/form-data" autocomplete="off">
-              <input type="hidden" name="edit_foro" value="<?php echo $foro['id']; ?>">
-
-              <div class="row">
-                <div class="col-sm-6">
-                  <div class="form-group label-floating">
-                    <label class="control-label">Título *</label>
-                    <input name="titulo" class="form-control" type="text"
-                           value="<?php echo htmlspecialchars($foro['Titulo']); ?>" required>
-                  </div>
-                </div>
-                <div class="col-sm-6">
-                  <div class="form-group label-floating">
-                    <label class="control-label">Archivo (reemplaza existente)</label>
-                    <input name="archivo" class="form-control" type="file">
-                  </div>
-                  <?php if (!empty($foro['Archivo'])): ?>
-                    <p style="margin-top:5px; color:#ccc;">
-                      Archivo actual: 
-                      <a href="<?php echo SERVERURL.'attachments/foros/'.urlencode($foro['Archivo']); ?>"
-                         target="_blank" style="color:#fff; text-decoration:underline;">
-                        <?php echo htmlspecialchars($foro['Archivo']); ?>
-                      </a>
-                    </p>
-                  <?php endif; ?>
-                </div>
+              <input type="hidden" name="edit_foro" value="<?= $foro['id'] ?>">
+              <div class="form-group label-floating">
+                <label class="control-label">Título *</label>
+                <input name="titulo" class="form-control" type="text"
+                       value="<?= htmlspecialchars($foro['Titulo']) ?>" required>
               </div>
-
-              <div class="row">
-                <div class="col-sm-12">
-                  <div class="form-group label-floating">
-                    <label class="control-label">Descripción *</label>
-                    <textarea name="descripcion" class="form-control" rows="3" required><?php echo htmlspecialchars($foro['Descripcion']); ?></textarea>
-                  </div>
-                </div>
+              <div class="form-group label-floating">
+                <label class="control-label">Archivo (reemplaza existente)</label>
+                <input name="archivo" class="form-control" type="file">
               </div>
-
-              <div class="row">
-                <div class="col-sm-4">
-                  <div class="form-group label-floating">
-                    <label class="control-label">Fecha de cierre (opcional)</label>
-                    <input type="datetime-local" name="fechacierre" class="form-control"
-                      value="<?php echo $foro['FechaCierre'] 
-                        ? date('Y-m-d\TH:i', strtotime($foro['FechaCierre'])) 
-                        : ''; ?>">
-                  </div>
-                </div>
-                <div class="col-sm-8 text-right">
-                  <button type="submit" class="btn btn-success btn-sm btn-raised">
-                    <i class="zmdi zmdi-floppy"></i> Guardar cambios
-                  </button>
-                  <button type="button" class="btn btn-default btn-sm"
-                          onclick="document.getElementById('editForm').style.display='none'">
-                    Cancelar
-                  </button>
-                </div>
+              <?php if (!empty($foro['Archivo'])): ?>
+                <p style="color:rgba(255,255,255,0.7);">
+                  Actual: <a href="<?= SERVERURL.'attachments/foros/'.urlencode($foro['Archivo']) ?>"
+                             target="_blank"><?= htmlspecialchars($foro['Archivo']) ?></a>
+                </p>
+              <?php endif; ?>
+              <div class="form-group label-floating">
+                <label class="control-label">Descripción *</label>
+                <textarea name="descripcion" class="form-control" rows="3" required><?= htmlspecialchars($foro['Descripcion']) ?></textarea>
               </div>
-
+              <div class="form-group label-floating">
+                <label class="control-label">Fecha de cierre (opcional)</label>
+                <input type="datetime-local" name="fechacierre" class="form-control"
+                  value="<?= $foro['FechaCierre'] ? date('Y-m-d\TH:i',strtotime($foro['FechaCierre'])) : '' ?>">
+              </div>
+              <div class="text-right">
+                <button type="submit" class="btn btn-success"><i class="zmdi zmdi-floppy"></i> Guardar</button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('editForm').style.display='none'">Cancelar</button>
+              </div>
             </form>
           </div>
         </div>
       </div>
+
+      <script>
+        document.getElementById('btnEdit').addEventListener('click', () => {
+          document.getElementById('editForm').style.display = 'block';
+        });
+      </script>
     <?php endif; ?>
 
-    <!-- Panel principal del foro -->
-    <div class="panel panel-success">
-      <div class="panel-heading"><?php echo htmlspecialchars($foro['Titulo']); ?></div>
+    <!-- Contenido del foro -->
+    <div class="panel">
+      <div class="panel-heading"><?= htmlspecialchars($foro['Titulo']) ?></div>
       <div class="panel-body">
-        <p style="font-size:0.9rem; color:#ccc;">
-          Creado: <?php echo htmlspecialchars($foro['FechaSubida']); ?>
+        <p style="font-size:.9rem;color:rgba(255,255,255,0.7);">
+          Creado: <?= htmlspecialchars($foro['FechaSubida']) ?>
           <?php if (!empty($foro['FechaCierre'])): ?>
-            | Cierre: <?php echo htmlspecialchars($foro['FechaCierre']); ?>
+            | Cierre: <?= htmlspecialchars($foro['FechaCierre']) ?>
           <?php endif; ?>
         </p>
-        <p><?php echo nl2br(htmlspecialchars($foro['Descripcion'])); ?></p>
+        <p><?= nl2br(htmlspecialchars($foro['Descripcion'])) ?></p>
         <?php if (!empty($foro['Archivo'])): ?>
-          <p>
-            <strong>Archivo:</strong>
-            <a href="<?php echo SERVERURL.'attachments/foros/'.urlencode($foro['Archivo']); ?>"
-               target="_blank">
-              <?php echo htmlspecialchars($foro['Archivo']); ?>
-            </a>
+          <p><strong>Archivo:</strong>
+            <a href="<?= SERVERURL.'attachments/foros/'.urlencode($foro['Archivo']) ?>"
+               target="_blank"><?= htmlspecialchars($foro['Archivo']) ?></a>
           </p>
         <?php endif; ?>
       </div>
     </div>
 
-    <!-- Comentarios del foro -->
+    <!-- Comentarios -->
     <?php foreach ($fc->list_comentarios($foroId) as $c): ?>
       <div class="panel">
-        <div class="panel-heading" style="background:#444; font-size:16px;">
-          <strong><?php echo htmlspecialchars($c['NombreUsuario']); ?></strong>
-           &nbsp;<span style="font-size:0.85rem; color:#ccc;">– <?php echo htmlspecialchars($c['Fecha']); ?></span>
+        <div class="panel-heading" style="background:#444;font-size:1rem;">
+          <strong><?= htmlspecialchars($c['NombreUsuario']) ?></strong>
+          <span style="font-size:.85rem;color: #2B2B2B;">– <?= htmlspecialchars($c['Fecha']) ?></span>
         </div>
         <div class="panel-body">
-          <p><?php echo nl2br(htmlspecialchars($c['Comentario'])); ?></p>
+          <p><?= nl2br(htmlspecialchars($c['Comentario'])) ?></p>
           <?php if (!empty($c['Adjunto'])): ?>
-            <p>
-              <strong>Archivo:</strong>
-              <a href="<?php echo SERVERURL.'attachments/foros/'.urlencode($c['Adjunto']); ?>"
-                 download="<?php echo htmlspecialchars($c['Adjunto']); ?>">
-                <?php echo htmlspecialchars($c['Adjunto']); ?>
-              </a>
+            <p><strong>Archivo:</strong>
+              <a href="<?= SERVERURL.'attachments/foros/'.urlencode($c['Adjunto']) ?>"
+                 download><?= htmlspecialchars($c['Adjunto']) ?></a>
             </p>
           <?php endif; ?>
         </div>
       </div>
     <?php endforeach; ?>
 
-    <!-- Formulario para agregar comentario (estudiante o docente) -->
-    <div class="panel panel-success">
+    <!-- Formulario de comentario -->
+    <div class="panel">
       <div class="panel-heading">Escribe tu comentario</div>
       <div class="panel-body">
         <form method="POST" enctype="multipart/form-data" autocomplete="off">
-          <div class="row">
-            <div class="col-sm-12">
-              <textarea name="comentario" class="form-control" rows="3" placeholder="Escribe tu comentario…" required></textarea>
-            </div>
+          <div class="form-group">
+            <textarea name="comentario" class="form-control" rows="3" placeholder="Escribe tu comentario…" required></textarea>
           </div>
-          <div class="row" style="margin-top:10px;">
-            <div class="col-sm-6">
-              <div class="form-group label-floating">
-                <label class="control-label">Adjunto (opcional)</label>
-                <input type="file" name="adjunto" class="form-control">
-              </div>
-            </div>
-            <div class="col-sm-6 text-right">
-              <input type="hidden" name="idc" value="1">
-              <button type="submit" class="btn btn-info btn-raised">
-                <i class="zmdi zmdi-mail-send"></i> Enviar
-              </button>
-            </div>
+          <div class="form-group">
+            <label>Adjunto (opcional)</label>
+            <input type="file" name="adjunto" class="form-control">
+          </div>
+          <input type="hidden" name="idc" value="1">
+          <div class="text-right">
+            <button type="submit" class="btn btn-info"><i class="zmdi zmdi-mail-send"></i> Enviar</button>
           </div>
         </form>
       </div>
     </div>
-
-    <script>
-      document.getElementById('btnEdit')?.addEventListener('click', function(){
-        document.getElementById('editForm').style.display = 'block';
-      });
-    </script>
   </div>
 </section>

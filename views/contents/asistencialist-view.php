@@ -1,7 +1,7 @@
 <?php 
 // views/contents/asistencialist-view.php
 
-// Solo Estudiantes pueden acceder a este historial
+// Sólo Estudiantes pueden acceder a este historial
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -22,160 +22,182 @@ if ($cursoId <= 0) {
 require_once __DIR__ . '/../../controllers/asistenciaController.php';
 require_once __DIR__ . '/../../controllers/cursoController.php';
 
-// 2) Verificar que el estudiante esté inscrito en ese curso (opcional pero recomendado)
-$insCurso = new cursoController();
-$userKey  = $_SESSION['userKey'] ?? '';
+// 2) Verificar inscripción
+$insCurso     = new cursoController();
+$userKey      = $_SESSION['userKey'] ?? '';
 $estaInscrito = $insCurso->is_estudiante_inscrito_en_curso_controller($userKey, $cursoId);
-
 if (!$estaInscrito) {
-    echo '<div class="alert alert-danger text-center">'
-       . 'No estás inscrito en este curso.</div>';
+    echo '<div class="alert alert-danger text-center">No estás inscrito en este curso.</div>';
     return;
 }
 
-// 3) Obtener listado de asistencias para este estudiante y este curso
-$insAsist  = new asistenciaController();
-$records   = $insAsist->get_history_by_student_course_controller($userKey, $cursoId);
+// 3) Historial
+$insAsist = new asistenciaController();
+$records  = $insAsist->get_history_by_student_course_controller($userKey, $cursoId);
 
-// 4) Obtener nombre del curso para el encabezado
-$cursoInfo = $insCurso->get_curso_by_id_controller($cursoId);
+// 4) Nombre del curso
+$cursoInfo   = $insCurso->get_curso_by_id_controller($cursoId);
 $cursoNombre = $cursoInfo['Nombre'] ?? '';
-
-// (Si no tienes estos métodos en cursoController, crea uno que haga:
-//    SELECT Nombre FROM curso WHERE id = ? )
 ?>
 
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    box-sizing: border-box;
+  /* ==== Paleta de colores ==== */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
-
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 170px;
+    width: calc(100% - 170px);
+    height: 100%;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .btn-search,
+  i.zmdi.zmdi-search,
+  .btn-options,
+  .dropdown-toggle,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
+  }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
+    font-family: 'RobotoCondensed', sans-serif;
+    overflow-x: hidden;
+  }
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px 40px;
-    background-color: #1e1f28;
+    position: relative; z-index: 1;
+    margin-left: 140px;
+    padding: 0 20px auto;
     min-height: 100vh;
     box-sizing: border-box;
-    max-width: calc(100vw - 170px);
-  }
-
-  .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
-  }
-
-  .lead {
-    font-size: 1.1rem;
-    color: #ccc;
-    text-align: center;
-    margin: 0 auto 30px auto;
-    max-width: 760px;
-  }
-
-  .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
-    max-width: 960px;
-    margin: 0 auto 20px auto;
   }
   .btn-back-cursos {
-    background-color: #607d8b !important;
-    border-color:     #455a64 !important;
-    color:            #fff !important;
+    background: var(--primary-accent) !important;
+    color: var(--primary-bg) !important;
+    border: none !important;
     margin-bottom: 15px;
+    padding: .5rem 1rem;
+    border-radius: .3rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: background .3s;
+  }
+  .btn-back-cursos:hover {
+    background: var(--hover-accent) !important;
+  }
+  .page-header h1 {
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: .5rem;
+    text-align: center;
+  }
+  .lead {
+    text-align: center;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+  }
+  .panel {
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto 2rem;
   }
   .panel-heading {
-    background: #43a047 !important;
-    color: #fff;
+    background: var(--primary-accent) !important;
+    color: var(--primary-bg) !important;
+    padding: 1rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    font-size: 17px;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
   }
-
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
-
   .table-responsive {
-    border-radius: 8px;
+    border-radius: .75rem;
     overflow: hidden;
   }
-
   .table {
     width: 100%;
+    border-collapse: collapse;
     margin-bottom: 0;
   }
-
   .table th, .table td {
+    padding: .75rem 1rem;
+    border: 1px solid rgba(255,255,255,0.2);
     text-align: center;
+    color: var(--text-light);
     vertical-align: middle;
-    background-color: transparent !important;
-    color: #fff;
-    border: 1px solid #444;
-    padding: 10px;
+    background: transparent;
   }
-
+  .table thead th {
+    background: var(--primary-bg);
+    color: var(--primary-accent);
+  }
   .table-hover tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,0.05);
   }
-
   .label-success {
-    background-color: #4caf50;
+    background: #4caf50;
+    padding: .3rem .6rem;
+    border-radius: .3rem;
   }
-
   .label-danger {
-    background-color: #f44336;
+    background: #f44336;
+    padding: .3rem .6rem;
+    border-radius: .3rem;
   }
-
   .label-warning {
-    background-color: #ff9800;
+    background: #ff9800;
+    padding: .3rem .6rem;
+    border-radius: .3rem;
   }
-  
+  @media (max-width: 768px) {
+    .dashboard-contentPage { margin-left: 0; padding: 1rem; }
+    .dashboard-banner { left: 0; width: 100%; }
+  }
 </style>
 
+<div class="dashboard-banner"></div>
+
 <section class="dashboard-contentPage">
-  <div class="container-fluid text-center">
-    <div class="page-header">
-      <h1 class="text-titles">
-        <i class="zmdi zmdi-time"></i> Mis Asistencias  
-        <small><?php echo htmlspecialchars($cursoNombre); ?></small>
-      </h1>
-    </div>
-    <p class="lead">
-      Aquí puedes revisar todas tus asistencias registradas para este curso.
-    </p>
-  </div>
-
-    <!-- Botón Volver a Mis Cursos (para Docente y Estudiante) -->
-    <?php if (in_array($_SESSION['userType'], ['Docente','Estudiante'])): ?>
-      <a href="<?php echo SERVERURL; ?>miscursos/" 
-         class="btn btn-back-cursos btn-sm">
-        <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
-      </a>
-    <?php endif; ?>
-
   <div class="container-fluid">
-    <div class="panel panel-success">
+    <div class="page-header">
+      <h1>
+        <i class="zmdi zmdi-time"></i>
+        Mis Asistencias de “<?= htmlspecialchars($cursoNombre) ?>”
+      </h1>
+      <p class="lead">
+        Aquí puedes revisar todas tus asistencias registradas para este curso.
+      </p>
+    </div>
+
+    <a href="<?= SERVERURL ?>miscursos/" class="btn-back-cursos btn-sm">
+      <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
+    </a>
+
+    <div class="panel">
       <div class="panel-heading">
         <i class="zmdi zmdi-format-list-bulleted"></i> Historial de Asistencias
       </div>
       <div class="panel-body">
         <div class="table-responsive">
-          <table class="table table-hover text-center">
+          <table class="table table-hover">
             <thead>
               <tr>
                 <th>#</th>
@@ -185,23 +207,23 @@ $cursoNombre = $cursoInfo['Nombre'] ?? '';
               </tr>
             </thead>
             <tbody>
-              <?php if (!empty($records)): ?>
-                <?php $i = 1; foreach ($records as $row): ?>
-                  <tr>
-                    <td><?php echo $i++; ?></td>
-                    <td><?php echo htmlspecialchars($row['Sesion']); ?></td>
-                    <td><?php echo htmlspecialchars($row['Fecha']); ?></td>
-                    <td>
-                      <span class="label label-<?php 
-                        echo $row['Estado']=='presente'   ? 'success' 
-                             : ($row['Estado']=='ausente'     ? 'danger' : 'warning');
-                      ?>">
-                        <?php echo ucfirst($row['Estado']); ?>
-                      </span>
-                    </td>
-                  </tr>
-                <?php endforeach; ?>
-              <?php else: ?>
+              <?php if (!empty($records)): $i=1; foreach ($records as $row): ?>
+                <tr>
+                  <td><?= $i++ ?></td>
+                  <td><?= htmlspecialchars($row['Sesion']) ?></td>
+                  <td><?= htmlspecialchars($row['Fecha']) ?></td>
+                  <td>
+                    <?php
+                      $st = $row['Estado'];
+                      $cls = $st==='presente' ? 'success'
+                           : ($st==='ausente' ? 'danger' : 'warning');
+                    ?>
+                    <span class="label label-<?= $cls ?>">
+                      <?= ucfirst($st) ?>
+                    </span>
+                  </td>
+                </tr>
+              <?php endforeach; else: ?>
                 <tr>
                   <td colspan="4">No se encontraron registros de asistencia para este curso.</td>
                 </tr>

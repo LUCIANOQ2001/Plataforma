@@ -1,7 +1,7 @@
 <?php
 // views/contents/consultaslist-view.php
 
-// 1) Inicia sesión SIEMPRE al principio (antes de usar $_SESSION)
+// 1) Inicia sesión SIEMPRE al principio
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -34,18 +34,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['delete_id'])) {
         $stmt = $pdo->prepare("DELETE FROM consultas WHERE id = :id");
         $_SESSION['alert'] = $stmt->execute([':id'=>(int)$_POST['delete_id']])
-            ? '<div class="alert alert-success text-center">Consulta eliminada.</div>'
-            : '<div class="alert alert-danger text-center">Error al eliminar.</div>';
+            ? '<div class="panel"><div class="panel-body text-center">Consulta eliminada.</div></div>'
+            : '<div class="panel"><div class="panel-body text-center">Error al eliminar.</div></div>';
     } elseif (isset($_POST['id'], $_POST['estado'])) {
         $stmt = $pdo->prepare("UPDATE consultas SET Estado = :estado WHERE id = :id");
         $_SESSION['alert'] = $stmt->execute([
             ':estado' => clean_string($_POST['estado']),
             ':id'     => (int)$_POST['id']
         ])
-        ? '<div class="alert alert-success text-center">Estado actualizado.</div>'
-        : '<div class="alert alert-danger text-center">Error al actualizar.</div>';
+        ? '<div class="panel"><div class="panel-body text-center">Estado actualizado.</div></div>'
+        : '<div class="panel"><div class="panel-body text-center">Error al actualizar.</div></div>';
     }
-    // Redirige para limpiar POST
     header("Location: ".$_SERVER['REQUEST_URI']);
     exit;
 }
@@ -77,154 +76,220 @@ $stmt->execute();
 $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<!-- Estilos inline para transparencia y margen -->
 <style>
-      /* ------------------------------------ */
-  /* Ocultar íconos de “tres puntos” y “lupa” */
-  /* ------------------------------------ */
-
-  /* Si los tres puntos usan la clase .btn-options o .dropdown-toggle: */
-  .btn-options,
-  .dropdown-toggle {
-    display: none !important;
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
-
-  /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
-  .btn-search,
-  i.zmdi.zmdi-search {
-    display: none !important;
+  html, body {
+    margin:0; padding:0;
+    background:var(--primary-bg);
+    color:var(--text-light);
+    width:100%; height:100%;
+    overflow-x:hidden;
+    box-sizing:border-box;
+    font-family:'RobotoCondensed',sans-serif;
   }
+  .dashboard-banner {
+    position:fixed; top:0; left:270px;
+    width:calc(100% - 270px); height:100%;
+    background:url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity:0.05; pointer-events:none; z-index:0;
+  }
+  .dashboard-contentPage {
+    position:relative; z-index:1;
+    margin-left:200px;
+    width:calc(100% - 270px);
+    padding:20px;
+    min-height:100vh;
+  }
+  /* Ocultar iconos de buscador y menú */
+  .btn-options, .dropdown-toggle,
+  .btn-search, i.zmdi-zmdi-search,
+  .zmdi-more-vert, .btn-menu-dashboard {
+    display:none !important;
+  }
+  .panel {
+    background:var(--secondary-bg) !important;
+    border:1px solid var(--primary-accent) !important;
+    border-radius:1rem;
+    box-shadow:0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom:2rem;
+  }
+  .panel-heading {
+    background:var(--primary-accent) !important;
+    color:var(--primary-bg) !important;
+    padding:1rem; font-weight:bold; text-align:center;
+    border-top-left-radius:1rem; border-top-right-radius:1rem;
+  }
+  .panel-body {
+    padding:1.5rem;
+  }
+  .consultas-panel {
+    max-width:950px; margin:0 auto;
+  }
+  .consultas-heading h3 {
+    margin:0; font-size:1.25rem;
+  }
+  .consultas-heading {
+    background:var(--primary-accent);
+    color:var(--primary-bg);
+    padding:.75rem 1.5rem;
+    border-top-left-radius:1rem; border-top-right-radius:1rem;
+  }
+  .table-responsive {
+    overflow-x:auto; max-height:400px;
+  }
+  .table {
+    width:100%; border-collapse:collapse;
+  }
+  .table th, .table td {
+    padding:.75rem; color:var(--text-light);
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    text-align:center; vertical-align:middle;
+  }
+  .table thead th {
+    background:var(--primary-accent);
+    color:#2B2B2B;
+  }
+  .table-hover tbody tr:hover {
+    background:rgba(255,255,255,0.05);
+  }
+  select.form-control {
+    background:rgba(255,255,255,0.1) !important;
+    color:var(--text-light) !important;
+    border:1px solid #555 !important;
+  }
+  .pagination {
+    display:inline-flex; justify-content:center;
+    padding:1rem 0; width:100%;
+  }
+  .pagination li {
+    margin:0 .25rem;
+  }
+  .pagination li a {
+    display:block; padding:.5rem .75rem;
+    background:var(--secondary-bg);
+    color:var(--text-light);
+    text-decoration:none;
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:.3rem;
+    transition:background .2s;
+  }
+  .pagination li a:hover {
+    background:var(--hover-accent);
+  }
+  .pagination li.active a {
+    background:var(--primary-accent);
+    border-color:var(--primary-accent);
+    color:var(--primary-bg);
+  }
+  /* Quita el fondo blanco de las opciones nativas */
+select.form-control {
+  background: transparent !important;
+  color: var(--text-light) !important;
+}
 
-.dashboard-contentPage {
-    margin-left: 170px;         /* Ajusta al ancho real de tu sidebar */
-    padding: 20px;
-    width: calc(100% - 270px);
-    box-sizing: border-box;
-    overflow: auto;
+/* Aplica tu paleta a las opciones desplegadas */
+select.form-control option {
+  background-color: var(--secondary-bg) !important;
+  color: var(--text-light) !important;
 }
-.dashboard-contentPage.full-box { width:auto; }
 
-.dashboard-contentPage .container-fluid,
-.dashboard-contentPage .panel,
-.dashboard-contentPage .panel-heading,
-.dashboard-contentPage .panel-body,
-.dashboard-contentPage .table-responsive,
-.dashboard-contentPage .table-responsive .table {
-    background: transparent !important;
-    color: #fff           !important;
-}
-.dashboard-contentPage .panel-heading {
-    background: rgb(16,196,121) !important;
-    border-color: rgb(16,196,121) !important;
-    color: #fff               !important;
-}
-.dashboard-contentPage .table-responsive .table th,
-.dashboard-contentPage .table-responsive .table td {
-    border-color: #444 !important;
-}
-/* Anular hover blanco */
-.dashboard-contentPage .table-hover tbody tr:hover {
-    background-color: transparent !important;
-}
-.consultas-panel {
-    max-width: 950px;
-    margin: 30px auto;
-    padding: 0;
-}
-.consultas-heading {
-    background: rgb(16,196,121);
-    color: #fff;
-    padding: 5px 15px;
-}
-.table-responsive {
-    max-height: 400px;
-    overflow-y: auto;
-}
-.pagination {
-    display: inline-flex;
-    padding: 10px 0;
-    justify-content: center;
-    width: 100%;
+/* Opcional: al pasar el ratón por encima */
+select.form-control option:hover {
+  background-color: var(--hover-accent) !important;
 }
 </style>
 
-<section class="dashboard-contentPage full-box">
-    <?php echo $alert; ?>
-    <div class="dashboard-container">
-        <div class="consultas-panel">
-            <div class="consultas-heading">
-                <h3 class="panel-title">Consultas de Estudiantes</h3>
-            </div>
-            <div class="table-responsive table-hover">
-                <table class="table text-center">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Estudiante</th>
-                            <th>Asunto</th>
-                            <th>Descripción</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if($consultas): $i=$start+1; foreach($consultas as $row): ?>
-                        <tr>
-                            <td><?php echo $i++; ?></td>
-                            <td><?php echo "{$row['Nombres']} {$row['Apellidos']}"; ?></td>
-                            <td><?php echo htmlspecialchars($row['Asunto']); ?></td>
-                            <td><?php echo nl2br(htmlspecialchars($row['Mensaje'])); ?></td>
-                            <td><?php echo $row['Fecha']; ?></td>
-                            <td>
-                                <select class="form-control"
-                                        onchange="updateStatus(<?php echo $row['id']; ?>,this.value)">
-                                    <option value="pendiente" <?php if($row['Estado']=='pendiente') echo 'selected'; ?>>
-                                        pendiente
-                                    </option>
-                                    <option value="respondido" <?php if($row['Estado']=='respondido') echo 'selected'; ?>>
-                                        respondido
-                                    </option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn btn-danger btn-xs"
-                                        onclick="deleteConsulta(<?php echo $row['id']; ?>)">
-                                    Eliminar
-                                </button>
-                            </td>
-                        </tr>
-                        <?php endforeach; else: ?>
-                        <tr><td colspan="7">No hay consultas registradas.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-            <!-- Paginación -->
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
-                    <?php for($p=1;$p<=$totalPages;$p++): ?>
-                    <li<?php if($p==$page) echo ' class="active"'; ?>>
-                        <a href="?page=<?php echo $p; ?>"><?php echo $p; ?></a>
-                    </li>
-                    <?php endfor; ?>
-                </ul>
-            </nav>
-        </div>
+<div class="dashboard-banner"></div>
+
+<section class="dashboard-contentPage">
+  <?= $alert ?>
+
+  <div class="consultas-panel">
+    <div class="consultas-heading">
+      <h3>Consultas de Estudiantes</h3>
     </div>
+    <div class="panel-body table-responsive table-hover">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Estudiante</th>
+            <th>Asunto</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if ($consultas): $i = $start + 1; foreach ($consultas as $row): ?>
+          <tr>
+            <td><?= $i++ ?></td>
+            <td><?= "{$row['Nombres']} {$row['Apellidos']}" ?></td>
+            <td><?= htmlspecialchars($row['Asunto']) ?></td>
+            <td style="text-align:left; white-space:normal;">
+              <?= nl2br(htmlspecialchars($row['Mensaje'])) ?>
+            </td>
+            <td><?= $row['Fecha'] ?></td>
+            <td>
+              <select class="form-control"
+                      onchange="updateStatus(<?= $row['id'] ?>, this.value)">
+                <option value="pendiente"   <?= $row['Estado']==='pendiente'   ? 'selected':'' ?>>pendiente</option>
+                <option value="respondido"  <?= $row['Estado']==='respondido'  ? 'selected':'' ?>>respondido</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-danger btn-xs btn-raised"
+                      onclick="deleteConsulta(<?= $row['id'] ?>)">
+                <i class="zmdi zmdi-delete"></i>
+              </button>
+            </td>
+          </tr>
+          <?php endforeach; else: ?>
+          <tr>
+            <td colspan="7">No hay consultas registradas.</td>
+          </tr>
+          <?php endif; ?>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <?php if ($totalPages > 1): ?>
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <?php for ($p = 1; $p <= $totalPages; $p++): ?>
+          <li class="<?= $p === $page ? 'active' : '' ?>">
+            <a href="?page=<?= $p ?>"><?= $p ?></a>
+          </li>
+        <?php endfor; ?>
+      </ul>
+    </nav>
+    <?php endif; ?>
+
+  </div>
 </section>
 
 <script>
-function deleteConsulta(id){
-    if(confirm('¿Eliminar esta consulta?')){
-        let f=new FormData(); f.append('delete_id',id);
-        fetch(location.href,{method:'POST',body:f})
-          .then(()=>location.reload());
-    }
+function deleteConsulta(id) {
+  if (confirm('¿Eliminar esta consulta?')) {
+    const data = new FormData();
+    data.append('delete_id', id);
+    fetch(location.href, { method: 'POST', body: data })
+      .then(() => location.reload());
+  }
 }
-function updateStatus(id,estado){
-    let f=new FormData(); f.append('id',id); f.append('estado',estado);
-    fetch(location.href,{method:'POST',body:f})
-      .then(()=>location.reload());
+function updateStatus(id, estado) {
+  const data = new FormData();
+  data.append('id', id);
+  data.append('estado', estado);
+  fetch(location.href, { method: 'POST', body: data })
+    .then(() => location.reload());
 }
 </script>

@@ -126,7 +126,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
   }
   .panel-heading {
     background: var(--primary-accent) !important;
-    color: #2B2B2B;
+    color:rgb(9, 9, 9);
     font-size: 1.2rem;
     text-align: center;
     padding: .75rem 1rem;

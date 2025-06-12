@@ -89,7 +89,7 @@ $sesiones = $sesionesRaw instanceof PDOStatement
   /* Contenido principal */
   .dashboard-contentPage {
     position: relative; z-index: 1;
-    margin-left: 140px;
+    margin-left: 180px;
     width: calc(100% - 270px);
     padding: 20 30px auto;
     min-height: 100vh;

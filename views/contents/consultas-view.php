@@ -21,25 +21,25 @@ function clean_string($str) {
 
 $alert = '';
 
-// Procesar POST con PRG (Post/Redirect/Get)
+// Procesar POST con PRG
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $codigoEst = $_SESSION['userKey'] ?? '';
     if (!$codigoEst) {
-        $_SESSION['alert'] = '<div class="alert alert-danger text-center">Debes iniciar sesión.</div>';
+        $_SESSION['alert'] = '<div class="panel"><div class="panel-body text-center">Debes iniciar sesión.</div></div>';
     } else {
         if (isset($_POST['delete_id'])) {
             $stmt = $pdo->prepare("DELETE FROM consultas WHERE id = :id");
             $_SESSION['alert'] = $stmt->execute([':id' => (int)$_POST['delete_id']])
-                ? '<div class="alert alert-success text-center">Consulta eliminada.</div>'
-                : '<div class="alert alert-danger text-center">Error al eliminar.</div>';
+                ? '<div class="panel"><div class="panel-body text-center">Consulta eliminada.</div></div>'
+                : '<div class="panel"><div class="panel-body text-center">Error al eliminar.</div></div>';
         } elseif (isset($_POST['id'], $_POST['estado'])) {
             $stmt = $pdo->prepare("UPDATE consultas SET Estado = :estado WHERE id = :id");
             $_SESSION['alert'] = $stmt->execute([
                 ':estado' => clean_string($_POST['estado']),
                 ':id'     => (int)$_POST['id']
             ])
-                ? '<div class="alert alert-success text-center">Estado actualizado.</div>'
-                : '<div class="alert alert-danger text-center">Error al actualizar.</div>';
+                ? '<div class="panel"><div class="panel-body text-center">Estado actualizado.</div></div>'
+                : '<div class="panel"><div class="panel-body text-center">Error al actualizar.</div></div>';
         } elseif (!empty($_POST['asunto']) && !empty($_POST['descripcion'])) {
             // Insertar nueva consulta
             $stmt = $pdo->prepare(
@@ -51,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':asunto'  => clean_string($_POST['asunto']),
                 ':mensaje' => clean_string($_POST['descripcion'])
             ])
-                ? '<div class="alert alert-success text-center">Consulta enviada.</div>'
-                : '<div class="alert alert-danger text-center">Error al enviar.</div>';
+                ? '<div class="panel"><div class="panel-body text-center">Consulta enviada.</div></div>'
+                : '<div class="panel"><div class="panel-body text-center">Error al enviar.</div></div>';
         }
     }
-    // Redirigir para evitar reenvío al refrescar (JS)
+    // Redirigir para evitar reenvío al refrescar
     echo "<script>window.location.href='" . $_SERVER['REQUEST_URI'] . "';</script>";
     exit;
 }
@@ -75,7 +75,7 @@ $start      = ($page - 1) * $perPage;
 $total      = (int)$pdo->query("SELECT COUNT(*) FROM consultas")->fetchColumn();
 $totalPages = ceil($total / $perPage);
 
-// Consulta de datos con JOIN a estudiante (incluye Mensaje)
+// Consulta de datos
 $stmt = $pdo->prepare(
     "SELECT c.id, e.Nombres, e.Apellidos, c.Asunto, c.Mensaje, c.Fecha, c.Estado
      FROM consultas c
@@ -90,203 +90,185 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <style>
-      /* Si la lupa tiene la clase .btn-search o un <i class="zmdi zmdi-search"> */
-  .btn-search,
-  i.zmdi.zmdi-search {
-    display: none !important;
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
   html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
-    height: 100%;
+    margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
+    width: 100%; height: 100%;
+    overflow-x: hidden;
     box-sizing: border-box;
+    font-family: 'RobotoCondensed', sans-serif;
   }
-
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 270px;
+    width: calc(100% - 270px);
+    height: 100%;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
   .dashboard-contentPage {
-    margin-left: 150px;
-    padding: 0 30px;
-    background-color: #1e1f28;
+    position: relative; z-index: 1;
+    margin-left: 200px;
+    width: calc(100% - 270px);
+    padding: auto;
     min-height: 100vh;
     box-sizing: border-box;
-
-    /* Para restringir ancho y centrar, si lo deseas */
-    max-width: 1350px;
-    margin-right: auto;
- 
   }
-
-  .page-header {
-    text-align: center;
-    margin-bottom: 30px;
+  .btn-options,
+  .dropdown-toggle,
+  .btn-search,
+  i.zmdi-zmdi-search,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
   }
-
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: .5rem;
+    text-align: center;
   }
-
   .page-header p {
     font-size: 1.1rem;
-    color: #ccc;
-    margin-bottom: 20px;
-  }
-
-  .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
-    color: #fff;
-    margin-bottom: 30px;
-  }
-
-  .panel-heading {
-    background: #43a047 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
+    color: rgba(255,255,255,0.7);
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    margin-bottom: 2rem;
   }
-
+  .panel {
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .panel-heading {
+    background: var(--primary-accent) !important;
+    color: var(--primary-bg) !important;
+    font-weight: bold;
+    font-size: 1.2rem;
+    text-align: center;
+    padding: 1rem;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+  }
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
-
   .form-neon .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
   }
-
   .form-neon .control-label {
-    color: #ccc;
+    color: rgba(255,255,255,0.7);
   }
-
   .form-neon .form-control {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #555;
-    color: #fff;
+    background: rgba(255,255,255,0.1) !important;
+    border: 1px solid #555 !important;
+    color: var(--text-light) !important;
   }
-
   .form-neon .form-control:focus {
-    border-color: #00e5ff;
-    box-shadow: 0 0 5px rgba(0, 229, 255, 0.5);
-    outline: none;
+    border-color: var(--primary-accent) !important;
+    box-shadow: 0 0 5px rgba(209,177,110,0.5) !important;
   }
-
   .btn-raised {
     box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-    border-radius: 4px;
-    transition: background 0.2s;
+    border-radius: .3rem;
+    transition: background .3s;
   }
-
   .btn-raised.btn-success {
-    background-color: #43a047;
-    border-color: #388e3c;
-    color: #fff;
+    background: var(--primary-accent);
+    border: 1px solid var(--primary-accent);
+    color: var(--primary-bg);
   }
-
   .btn-raised.btn-success:hover {
-    background-color: #388e3c;
+    background: var(--hover-accent);
   }
-
   .table-responsive {
     overflow-x: auto;
-    margin-bottom: 20px;
+    margin-bottom: 2rem;
     max-height: 400px;
   }
-
   .table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 1rem;
   }
-
-  .table th,
-  .table td {
-    padding: 12px;
-    border-bottom: 1px solid #444;
+  .table th, .table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
     text-align: center;
-    color: #fff;
+    color: var(--text-light);
     white-space: nowrap;
   }
-
   .table thead th {
-    background: #333;
-    color: #ddd;
+    background: var(--primary-accent);
+    color: var(--text-light);
   }
-
   .label {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    padding: .4rem .8rem;
+    border-radius: .3rem;
+    font-size: .9rem;
   }
-
   .label-warning {
-    background-color: #f0ad4e;
-    color: #000;
+    background: var(--hover-accent);
+    color: var(--primary-bg);
   }
-
   .label-success {
-    background-color: #5cb85c;
-    color: #fff;
+    background: var(--primary-accent);
+    color: var(--primary-bg);
   }
-
   .pagination {
     display: inline-flex;
-    padding: 10px 0;
+    padding: 1rem 0;
     justify-content: center;
     width: 100%;
   }
-
   .pagination li {
-    margin: 0 4px;
+    margin: 0 .25rem;
   }
-
   .pagination li a {
     display: block;
-    padding: 6px 12px;
-    background-color: #2a2c3b;
-    color: #fff;
+    padding: .5rem 1rem;
+    background: var(--secondary-bg);
+    color: var(--text-light);
     text-decoration: none;
-    border-radius: 4px;
-    border: 1px solid #444;
-    transition: background 0.2s;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: .3rem;
+    transition: background .2s;
   }
-
   .pagination li a:hover {
-    background-color: #333;
+    background: var(--hover-accent);
   }
-
   .pagination li.active a {
-    background-color: #00e5ff;
-    color: #000;
-    border-color: #00aacc;
+    background: var(--primary-accent);
+    border-color: var(--primary-accent);
+    color: var(--primary-bg);
   }
 </style>
 
+<div class="dashboard-banner"></div>
+
 <section class="dashboard-contentPage">
   <div class="page-header">
-    <h1>
-      <i class="zmdi zmdi-email"></i> Centro de Consultas
-    </h1>
-    <p>
-      Envía tus dudas o preguntas y revisa el historial de tus consultas.
-    </p>
-    <?php echo $alert; ?>
+    <h1><i class="zmdi zmdi-email"></i> Centro de Consultas</h1>
+    <p>Envía tus dudas o preguntas y revisa el historial de tus consultas.</p>
+    <?= $alert ?>
   </div>
 
-  <!-- Formulario de Nueva Consulta -->
+  <!-- Nueva Consulta -->
   <div class="panel">
-    <div class="panel-heading">
-      <i class="zmdi zmdi-mail-send"></i> Nueva Consulta
-    </div>
+    <div class="panel-heading"><i class="zmdi zmdi-mail-send"></i> Nueva Consulta</div>
     <div class="panel-body">
       <form action="" method="POST" class="form-neon">
         <div class="form-group label-floating">
@@ -308,9 +290,7 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
   <!-- Historial de Consultas -->
   <div class="panel">
-    <div class="panel-heading">
-      <i class="zmdi zmdi-folder"></i> Historial de Consultas
-    </div>
+    <div class="panel-heading"><i class="zmdi zmdi-folder"></i> Historial de Consultas</div>
     <div class="panel-body">
       <div class="table-responsive">
         <table class="table">
@@ -328,20 +308,21 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
           <tbody>
             <?php if ($consultas): $i = $start + 1; foreach ($consultas as $row): ?>
             <tr>
-              <td><?php echo $i++; ?></td>
-              <td><?php echo "{$row['Nombres']} {$row['Apellidos']}"; ?></td>
-              <td><?php echo htmlspecialchars($row['Asunto'], ENT_QUOTES, 'UTF-8'); ?></td>
+              <td><?= $i++ ?></td>
+              <td><?= "{$row['Nombres']} {$row['Apellidos']}" ?></td>
+              <td><?= htmlspecialchars($row['Asunto'], ENT_QUOTES, 'UTF-8') ?></td>
               <td style="max-width:200px; white-space: normal; text-align:left;">
-                <?php echo nl2br(htmlspecialchars($row['Mensaje'], ENT_QUOTES, 'UTF-8')); ?>
+                <?= nl2br(htmlspecialchars($row['Mensaje'], ENT_QUOTES, 'UTF-8')) ?>
               </td>
-              <td><?php echo $row['Fecha']; ?></td>
+              <td><?= $row['Fecha'] ?></td>
               <td>
-                <span class="label label-<?php echo ($row['Estado'] === 'pendiente') ? 'warning' : 'success'; ?>">
-                  <?php echo $row['Estado']; ?>
+                <span class="label <?= $row['Estado']==='pendiente'?'label-warning':'label-success' ?>">
+                  <?= ucfirst($row['Estado']) ?>
                 </span>
               </td>
               <td>
-                <button class="btn btn-danger btn-xs" onclick="deleteConsulta(<?php echo $row['id']; ?>)">
+                <button class="btn btn-danger btn-raised btn-xs"
+                        onclick="deleteConsulta(<?= $row['id'] ?>)">
                   <i class="zmdi zmdi-delete"></i>
                 </button>
               </td>
@@ -360,8 +341,8 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <nav aria-label="Page navigation">
         <ul class="pagination">
           <?php for($p = 1; $p <= $totalPages; $p++): ?>
-            <li class="<?php echo ($p === $page) ? 'active' : ''; ?>">
-              <a href="?page=<?php echo $p; ?>"><?php echo $p; ?></a>
+            <li class="<?= $p === $page ? 'active' : '' ?>">
+              <a href="?page=<?= $p ?>"><?= $p ?></a>
             </li>
           <?php endfor; ?>
         </ul>
@@ -379,13 +360,5 @@ $consultas = $stmt->fetchAll(PDO::FETCH_ASSOC);
       fetch(location.href, { method: 'POST', body: data })
         .then(() => location.reload());
     }
-  }
-
-  function updateStatus(id, estado) {
-    const data = new FormData();
-    data.append('id', id);
-    data.append('estado', estado);
-    fetch(location.href, { method: 'POST', body: data })
-      .then(() => location.reload());
   }
 </script>
