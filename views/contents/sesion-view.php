@@ -23,239 +23,249 @@ $parts    = explode("/", trim($_GET['views'], "/"));
 $cursoId  = intval($parts[1]);
 
 // 4) Obtener datos del curso
-// 4) Obtener datos del curso
 $dataCurso = $insCurso->get_curso_by_id_controller($cursoId);
-
-// Si el controlador devolvió un PDOStatement (versión antigua), hacemos lo mismo que antes:
 if ($dataCurso instanceof PDOStatement) {
     if ($dataCurso->rowCount() === 0) {
         echo '<div class="alert alert-danger">Curso no encontrado.</div>';
         return;
     }
     $curso = $dataCurso->fetch(PDO::FETCH_ASSOC);
-
-// Si devolvió un array asociativo con los datos de la fila o devolvió null:
 } else {
-    // Si no devolvió nada, error:
     if (empty($dataCurso)) {
         echo '<div class="alert alert-danger">Curso no encontrado.</div>';
         return;
     }
-    // Si $dataCurso ya es un arreglo asociativo con las columnas del curso:
-    if (isset($dataCurso['Nombre'])) {
-        $curso = $dataCurso;
-    // Si por alguna razón devolvió un array de filas (indexado), tomamos la primera:
-    } elseif (isset($dataCurso[0])) {
-        $curso = $dataCurso[0];
-    } else {
-        // Cualquier otro caso inesperado:
-        echo '<div class="alert alert-danger">Error al obtener datos del curso.</div>';
-        return;
-    }
+    $curso = isset($dataCurso['Nombre']) ? $dataCurso : $dataCurso[0];
 }
-
-
 
 // 5) Procesar POST para creación de sesión (solo Admin/Docente)
 $alert = '';
-if (in_array($userType, ['Administrador','Docente'])
-    && $_SERVER['REQUEST_METHOD'] === 'POST') {
+if (in_array($userType, ['Administrador','Docente']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $alert = $insSesion->add_sesion_controller($cursoId, $_POST);
-    // PRG: evita reenvío
     echo "<script>location.replace(location.pathname);</script>";
     exit;
 }
 
-// 6) Listar sesiones (forzamos que quede un array)
-// 6) Listar sesiones (forzamos que siempre sea array indexado de filas)
+// 6) Listar sesiones
 $sesionesRaw = $insSesion->list_sesiones_controller($cursoId);
-
-if ($sesionesRaw instanceof PDOStatement) {
-    // Si devolvió un PDOStatement, hacemos fetchAll para obtener array de filas
-    $sesiones = $sesionesRaw->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    // Si devolvió ya un array de filas (o nulo), lo convertimos a array.
-    $sesiones = is_array($sesionesRaw) ? $sesionesRaw : [];
-}
-
+$sesiones = $sesionesRaw instanceof PDOStatement
+    ? $sesionesRaw->fetchAll(PDO::FETCH_ASSOC)
+    : (is_array($sesionesRaw) ? $sesionesRaw : []);
 ?>
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    box-sizing: border-box;
+  /* ==== Paleta de colores ==== */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
 
+  /* Reset y fondo global */
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
+    width: 100%; height: 100%;
+    overflow-x: hidden;
+    font-family: 'RobotoCondensed', sans-serif;
+  }
+
+  /* Banner con logo de fondo */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 270px;
+    width: calc(100% - 270px); height: 100%;
+    background-image: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Contenido principal */
   .dashboard-contentPage {
-    margin-left: 120px;
-    padding: 0 30px;
-    background-color: #1e1f28;
+    position: relative; z-index: 1;
+    margin-left: 140px;
+    width: calc(100% - 270px);
+    padding: 20 30px auto;
     min-height: 100vh;
     box-sizing: border-box;
   }
 
+  /* Ocultar buscador y tres puntitos */
+  .btn-options,
+  .dropdown-toggle,
+  .btn-search,
+  i.zmdi-zmdi-search,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
+  }
+
+  /* Cabecera */
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
-  }
-
-  .lead {
-    font-size: 1.1rem;
-    color: #ccc;
-    margin-bottom: 30px;
-  }
-
-  .btn-info {
-    background-color: #03a9f4;
-    border-color: #0288d1;
-    color: #fff;
-  }
-
-  .btn-info:hover {
-    background-color: #0288d1;
-  }
-
-  .btn-back-home {
-    background-color: #607d8b !important;
-    border-color:     #455a64 !important;
-    color:            #fff !important;
-    margin-bottom: 20px;
-  }
-
-  .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
-    color: #fff;
-  }
-
-  .panel-heading {
-    background: #43a047 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: .5rem;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+  }
+  .lead {
+    text-align: center;
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 2rem;
   }
 
+  /* Botones */
+  .btn-back-home {
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    transition: background .3s;
+  }
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
+    text-decoration: none;
+  }
+  .btn-info {
+    background: var(--primary-accent) !important;
+    border: none !important;
+    color: var(--text-light) !important;
+    margin-bottom: 1.5rem;
+  }
+  .btn-info:hover {
+    background: var(--hover-accent) !important;
+  }
+
+  /* Panel formulario */
+  .panel {
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .panel-heading {
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    padding: .75rem 1rem;
+    font-weight: bold;
+    text-align: center;
+  }
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
 
   .form-control {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #555;
-    color: #fff;
+    background: rgba(255,255,255,0.1) !important;
+    border: 1px solid #555 !important;
+    color: var(--text-light) !important;
   }
 
+  /* Grid de sesiones */
   .course-sessions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px,1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
   }
-
   .session-card {
-    background: #2a2c3b;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    background: var(--secondary-bg);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     overflow: hidden;
-    width: 250px;
-    transition: transform 0.3s ease;
+    transition: transform .2s ease-in-out;
   }
-
   .session-card:hover {
     transform: translateY(-5px);
   }
 
   .session-card .header {
-    background: #b71c1c;
-    color: #fff;
-    padding: 16px;
+    background: var(--primary-accent);
+    color:rgb(6, 1, 1);
+    padding: 1rem;
     font-weight: bold;
-    font-size: 16px;
     text-align: center;
   }
-
   .session-card .header small {
     display: block;
+    font-size: .85rem;
     font-weight: normal;
-    font-size: 13px;
-    margin-top: 4px;
+    margin-top: .25rem;
+    color: rgba(16, 1, 1, 0.8); /*esto cambia el color de las fechas de cada sesión*/
   }
-
   .session-card .body {
-    padding: 15px;
+    padding: 1rem;
   }
-
   .session-card .body a {
     display: block;
-    padding: 6px 10px;
-    margin-bottom: 8px;
+    padding: .75rem 1rem;
+    margin-bottom: .5rem;
     background: #333;
-    border-radius: 5px;
-    color: #fff;
+    border-radius: .5rem;
+    color: var(--text-light);
     text-decoration: none;
-    transition: background 0.2s;
+    transition: background .2s;
   }
-
   .session-card .body a:hover {
     background: #444;
   }
-
   .session-card .body a i {
-    margin-right: 6px;
+    margin-right: .5rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .dashboard-contentPage {
+      margin-left: 0; width: 100%; padding: 1rem;
+    }
+    .dashboard-banner {
+      left: 0; width: 100%;
+    }
+    .course-sessions {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 
+<div class="dashboard-banner"></div>
+
 <section class="dashboard-contentPage">
   <div class="container-fluid">
-    <!-- Botón Volver a Mis Cursos -->
-    <a href="<?php echo SERVERURL; ?>miscursos/"
-       class="btn btn-back-home btn-sm">
+    <a href="<?= SERVERURL ?>miscursos/" class="btn btn-back-home btn-sm">
       <i class="zmdi zmdi-arrow-left"></i> Volver a Mis Cursos
     </a>
 
     <div class="page-header">
-      <h1 class="text-titles">
-        <i class="zmdi zmdi-play-circle"></i>
-        Sesiones de: <?php echo htmlspecialchars($curso['Nombre']); ?>
-      </h1>
+      <h1><i class="zmdi zmdi-play-circle"></i> Sesiones de: <?= htmlspecialchars($curso['Nombre']) ?></h1>
     </div>
-    <p class="lead">
-      <?php 
-        // Si existe $curso['Descripcion'], lo mostramos; si no, mostramos cadena vacía.
-        echo htmlspecialchars( $curso['Descripcion'] ?? '' ); 
-      ?>
-    </p>
+    <p class="lead"><?= htmlspecialchars($curso['Descripcion'] ?? '') ?></p>
 
-    <?php echo $alert; ?>
+    <?= $alert ?>
   </div>
 
   <?php if (in_array($userType, ['Administrador','Docente'])): ?>
-    <!-- Botón para crear nueva sesión -->
     <div class="container-fluid">
-      <button class="btn btn-info btn-raised"
+      <button class="btn btn-info btn-raised btn-sm"
               onclick="document.getElementById('newSessionForm').style.display='block'">
         <i class="zmdi zmdi-plus"></i> Nueva Sesión
       </button>
     </div>
-
-    <!-- Formulario oculto inicialmente -->
     <div class="container-fluid" id="newSessionForm" style="display:none; margin-top:1rem;">
-      <div class="panel panel-info">
+      <div class="panel">
         <div class="panel-heading">
-          <h3 class="panel-title"><i class="zmdi zmdi-plus-circle"></i> Crear Sesión</h3>
+          <i class="zmdi zmdi-plus-circle"></i> Crear Sesión
         </div>
         <div class="panel-body">
           <form method="POST" autocomplete="off">
@@ -279,11 +289,11 @@ if ($sesionesRaw instanceof PDOStatement) {
                 </div>
               </div>
             </div>
-            <p class="text-center">
+            <p class="text-center" style="margin-top:1rem;">
               <button type="submit" class="btn btn-success btn-raised">
                 <i class="zmdi zmdi-floppy"></i> Guardar Sesión
               </button>
-              <button type="button" class="btn btn-default"
+              <button type="button" class="btn btn-back-home"
                       onclick="this.closest('#newSessionForm').style.display='none'">
                 Cancelar
               </button>
@@ -294,51 +304,46 @@ if ($sesionesRaw instanceof PDOStatement) {
     </div>
   <?php endif; ?>
 
-  <!-- Listado de sesiones (visible para todos los roles) -->
   <div class="container-fluid">
     <div class="course-sessions">
       <?php if (empty($sesiones)): ?>
-        <p>No hay sesiones aún. 
+        <p>No hay sesiones aún.
            <?php if(in_array($userType,['Administrador','Docente'])): ?>
              Crea la primera arriba.
            <?php endif; ?>
         </p>
       <?php else: ?>
-            <?php foreach($sesiones as $s): ?>
-              <div class="session-card">
-                <div class="header">
-                  <!-- Asegúrate de que “Titulo” y “Fecha” coinciden con los campos que trae tu SELECT: -->
-                  <?php echo htmlspecialchars($s['Titulo']); ?><br>
-                  <small><?php echo date("d/m/Y", strtotime($s['Fecha'])); ?></small>
-                </div>
-                <div class="body">
-                  <a href="<?php echo SERVERURL."material/{$s['id']}/"; ?>">
-                    <i class="zmdi zmdi-collection-text"></i> Material
-                  </a>
-
-              <!-- Enlace a Evaluación según tipo de usuario -->
+        <?php foreach($sesiones as $s): ?>
+          <div class="session-card">
+            <div class="header">
+              <?= htmlspecialchars($s['Titulo']) ?><br>
+              <small><?= date("d/m/Y", strtotime($s['Fecha'])) ?></small>
+            </div>
+            <div class="body">
+              <a href="<?= SERVERURL ?>material/<?= $s['id'] ?>/">
+                <i class="zmdi zmdi-collection-text"></i> Material
+              </a>
               <?php if ($userType === 'Docente' || $userType === 'Administrador'): ?>
-                <a href="<?php echo SERVERURL."evaluacion/{$s['id']}/"; ?>">
+                <a href="<?= SERVERURL ?>evaluacion/<?= $s['id'] ?>/">
                   <i class="zmdi zmdi-assignment"></i> Evaluación
                 </a>
-              <?php else: /* Estudiante */ ?>
-                <a href="<?php echo SERVERURL."evaluacion-student/{$s['id']}/estudiante/"; ?>">
+              <?php else: ?>
+                <a href="<?= SERVERURL ?>evaluacion-student/<?= $s['id'] ?>/estudiante/">
                   <i class="zmdi zmdi-assignment"></i> Evaluación
                 </a>
               <?php endif; ?>
-
               <?php if ($s['Video']): ?>
-                <a href="<?php echo htmlspecialchars($s['Video']); ?>" target="_blank">
+                <a href="<?= htmlspecialchars($s['Video']) ?>" target="_blank">
                   <i class="zmdi zmdi-videocam"></i> Video
                 </a>
               <?php endif; ?>
-              <a href="<?php echo SERVERURL."grabaciones/{$s['id']}/"; ?>">
+              <a href="<?= SERVERURL ?>grabaciones/<?= $s['id'] ?>/">
                 <i class="zmdi zmdi-movie"></i> Grabaciones
               </a>
-              <a href="<?php echo SERVERURL."foro/{$s['id']}/"; ?>">
+              <a href="<?= SERVERURL ?>foro/<?= $s['id'] ?>/">
                 <i class="zmdi zmdi-comments"></i> Foro
               </a>
-              <a href="<?php echo SERVERURL."asistencia/{$s['id']}/"; ?>">
+              <a href="<?= SERVERURL ?>asistencia/<?= $s['id'] ?>/">
                 <i class="zmdi zmdi-comment-text"></i> Asistencias
               </a>
             </div>

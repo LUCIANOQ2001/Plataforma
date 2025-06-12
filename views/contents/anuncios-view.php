@@ -18,55 +18,110 @@ $userType = $_SESSION['userType'];
 // 2) Recuperar los 10 anuncios más recientes
 $recent = $ac->list_recent_by_user_controller($userKey, $userType, 10);
 ?>
-
 <style>
+  /* === Paleta de colores actualizada === */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
+  }
+
+  /* Reseteo global */
   html, body {
     margin: 0; padding: 0;
-    background: #1e1f28; color: #fff;
+    background: var(--primary-bg);
+    color: var(--text-light);
     width: 100%; height: 100%;
     overflow-x: hidden;
+    font-family: 'RobotoCondensed', sans-serif;
+  }
+
+  /* Banner con logo de fondo */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 270px;  /* deja libre el sidebar */
+    width: calc(100% - 270px); height: 100%;
+    background-image: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 60%;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Contenido principal */
+  .dashboard-contentPage {
+    
+    position: relative;
+    z-index: 1;
+    margin-left: 180px;
+    width: calc(100% - 270px);
+    padding: 0 30px auto;
+    min-height: 100vh;
     box-sizing: border-box;
   }
-  .dashboard-contentPage {
-    margin-left: 130px;
-    padding: 0 20px;
-    min-height: 100vh;
-    background: #1e1f28;
+
+  /* Ocultar iconos indeseados */
+  .zmdi-more-vert,
+  .zmdi-search,
+  .btn-menu-dashboard {
+    display: none !important;
   }
 
   /* Encabezado */
   .page-header h1 {
-    color: #00e5ff;
-    font-size: 28px;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 0.5rem;
+    color: var(--primary-accent);
+    font-size: 2rem;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: .5rem;
   }
   .page-header hr {
-    /* línea bajo el título */
-    width: 120px;                /* longitud fija */
+    width: 120px;
     border: none;
-    border-top: 2px solid #444;  /* grosor y color */
-    margin: 0.5rem 0 1.5rem 0;    /* separaciones */
+    border-top: 2px solid rgba(255,255,255,0.3);
+    margin: .5rem 0 1.5rem 0;
   }
 
-  /* Panel centrado y con ancho máximo */
+  /* Botón Volver */
+  .btn-back-home {
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    transition: background .3s;
+  }
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
+    text-decoration: none;
+  }
+
+  /* Panel de anuncios */
   .panel {
-    background: #2c2d3f;
-    border: 1px solid #3c3d4f;
-    border-radius: 8px;
-    max-width: 900px;     /* ancho máximo */
-    margin: 0 auto 2rem;  /* centrado y margen inferior */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    overflow: hidden;
   }
   .panel-heading {
-    background: #333;
-    color: #ddd;
-    padding: 12px 20px;
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    padding: .75rem 1rem;
     font-weight: bold;
-    border-radius: 8px 8px 0 0;
+    font-size: 1.1rem;
+    text-align: center;
   }
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
 
   /* Lista de anuncios */
@@ -75,57 +130,61 @@ $recent = $ac->list_recent_by_user_controller($userKey, $userType, 10);
     margin: 0; padding: 0;
   }
   .anuncios-list li {
-    padding: 15px 10px;
-    border-bottom: 1px solid #444;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
   }
   .anuncios-list li:last-child {
     border-bottom: none;
   }
   .anuncio-titulo {
     font-weight: bold;
-    color: #29b6f6;
+    color: var(--primary-accent);
     font-size: 1.1rem;
   }
   .anuncio-curso {
-    font-size: 0.9rem;
-    color: #bbb;
-    margin-left: 8px;
+    font-size: .9rem;
+    color: rgba(255,255,255,0.7);
+    margin-left: .5rem;
   }
   .anuncio-fecha {
     float: right;
-    font-size: 0.8rem;
-    color: #888;
+    font-size: .8rem;
+    color: rgba(255,255,255,0.5);
   }
   .anuncio-contenido {
     clear: both;
-    margin-top: 8px;
+    margin-top: .75rem;
     line-height: 1.4;
+    color: rgba(255,255,255,0.9);
   }
 
+  /* Mensaje vacío */
   .empty {
     text-align: center;
-    color: #ccc;
-    padding: 30px 0;
+    color: rgba(255,255,255,0.5);
+    padding: 2rem 0;
   }
-  .btn-back-home i {
-    margin-right: 4px;
-  }
-  .btn-back-home {
-    background-color: #607d8b !important;
-    border-color: #455a64 !important;
-    color: #fff !important;
-    margin-bottom: 20px;
-    padding: 8px 14px;
-    font-size: 0.9rem;
-    text-decoration: none;
-    display: inline-block;
-    
+
+  /* Responsivo */
+  @media (max-width: 768px) {
+    .dashboard-contentPage {
+      margin-left: 0;
+      width: 100%;
+      padding: 1rem;
+    }
+    .dashboard-banner {
+      left: 0;
+      width: 100%;
+    }
+    .panel { max-width: 100%; }
   }
 </style>
 
+<div class="dashboard-banner"></div>
+
 <section class="dashboard-contentPage">
   <div class="container-fluid">
-        <p class="text-center">
+    <p class="text-center">
       <a href="<?= SERVERURL ?>home/" class="btn btn-back-home">
         <i class="zmdi zmdi-long-arrow-return"></i> Volver
       </a>
@@ -140,7 +199,7 @@ $recent = $ac->list_recent_by_user_controller($userKey, $userType, 10);
   <div class="container-fluid">
     <div class="panel">
       <div class="panel-heading">
-        Últimos <?php echo count($recent); ?> anuncios
+        Últimos <?= count($recent) ?> anuncios
       </div>
       <div class="panel-body">
         <?php if (empty($recent)): ?>
@@ -150,16 +209,16 @@ $recent = $ac->list_recent_by_user_controller($userKey, $userType, 10);
             <?php foreach($recent as $a): ?>
               <li>
                 <span class="anuncio-titulo">
-                  <?php echo htmlspecialchars($a['Titulo']); ?>
+                  <?= htmlspecialchars($a['Titulo']) ?>
                 </span>
                 <span class="anuncio-curso">
-                  (<?php echo htmlspecialchars($a['Curso']); ?>)
+                  (<?= htmlspecialchars($a['Curso']) ?>)
                 </span>
                 <span class="anuncio-fecha">
-                  <?php echo date('d/m/Y H:i', strtotime($a['Fecha'])); ?>
+                  <?= date('d/m/Y H:i', strtotime($a['Fecha'])) ?>
                 </span>
                 <div class="anuncio-contenido">
-                  <?php echo nl2br(htmlspecialchars($a['Contenido'])); ?>
+                  <?= nl2br(htmlspecialchars($a['Contenido'])) ?>
                 </div>
               </li>
             <?php endforeach; ?>

@@ -81,7 +81,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
   .page-header h1 {
     font-size: 2rem;
     color: var(--primary-accent);
-    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 8px rgba(3, 0, 0, 0.7);
     margin-bottom: 1rem;
   }
   .lead {
@@ -89,10 +89,10 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
     font-size: 1.1rem;
     margin-bottom: 2rem;
   }
-.zmdi-more-vert,
-.zmdi-search,
-.btn-menu-dashboard {
-  display: none !important;
+  .zmdi-more-vert,
+  .zmdi-search,
+  .btn-menu-dashboard {
+    display: none !important;
 }
   /* Botón Volver */
   .btn-back-home {
@@ -126,7 +126,7 @@ $rows = $data->fetch(PDO::FETCH_ASSOC);
   }
   .panel-heading {
     background: var(--primary-accent) !important;
-    color: var(--text-light) !important;
+    color: #2B2B2B;
     font-size: 1.2rem;
     text-align: center;
     padding: .75rem 1rem;

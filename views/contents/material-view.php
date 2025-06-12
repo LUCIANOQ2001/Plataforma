@@ -1,6 +1,9 @@
 <?php 
 // views/contents/material-view.php
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiante'])) {
     echo (new loginController())->login_session_force_destroy_controller();
     exit;
@@ -37,137 +40,206 @@ if (in_array($_SESSION['userType'], ['Administrador','Docente'])
 
 $materials = $insMaterial->list_materials_controller($sesionId);
 ?>
-
 <style>
-  /* ------------------------------------ */
-  /* Ocultar íconos de “tres puntos” y “lupa” */
-  /* ------------------------------------ */
-
-  .btn-options,
-  .dropdown-toggle {
-    display: none !important;
+  /* ==== Paleta de colores ==== */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
   }
 
-  .btn-search,
-  i.zmdi.zmdi-search {
-    display: none !important;
-  }
-
+  /* Reset global */
   html, body {
-    background-color: #1e1f28;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
+    margin: 0; padding: 0;
+    background: var(--primary-bg);
+    color: var(--text-light);
+    width: 100%; height: 100%;
     overflow-x: hidden;
-    box-sizing: border-box;
+    font-family: 'RobotoCondensed', sans-serif;
   }
+
+  /* Banner con logo de fondo */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 270px;
+    width: calc(100% - 270px); height: 100%;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Contenido principal */
   .dashboard-contentPage {
-    margin-left: 130px;
-    padding: 0 30px;
-    width: calc(100% - 170px);
-    background-color: #1e1f28;
+    position: relative; z-index: 1;
+    margin-left: 180px;
+    width: calc(100% - 270px);
+    padding: 0 30px auto;
+    min-height: 100vh;
     box-sizing: border-box;
   }
+
+  /* Ocultar íconos indeseados */
+  .btn-options,
+  .dropdown-toggle,
+  .btn-search,
+  i.zmdi-zmdi-search,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
+  }
+
+  /* Encabezado */
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: 0.5rem;
+    text-align: center;
   }
   .lead {
-    color: #ccc;
+    text-align: center;
     font-size: 1.1rem;
-    margin-bottom: 30px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 2rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
   }
+
+  /* Botón Volver */
+  .btn-back-home {
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    transition: background .3s;
+  }
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
+    text-decoration: none;
+  }
+
+  /* Panel principal */
   .panel {
-    background: #2c2d3f;
-    border: 1px solid #3c3d4f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom: 2rem;
+    overflow: hidden;
   }
   .panel-heading {
-    background-color: #00bcd4;
-    color: #fff;
+    background: var(--primary-accent) !important;
+    color: #2B2B2B;
+    padding: .75rem 1rem;
     font-weight: bold;
-    font-size: 17px;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
   }
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
-  .form-control, .control-label, textarea {
-    background: rgba(255,255,255,0.08) !important;
+
+  /* Formulario añadiendo material */
+  .form-control, textarea {
+    background: rgba(255,255,255,0.1) !important;
     border: 1px solid #555 !important;
-    color: #fff !important;
+    color: var(--text-light) !important;
+  }
+  .control-label {
+    color: rgba(255,255,255,0.7) !important;
   }
   .btn-info, .btn-success, .btn-danger {
-    color: #fff !important;
     font-weight: bold;
+    border-radius: .3rem;
   }
   .btn-info {
-    background-color: #0288d1 !important;
-    border: 1px solid #0277bd !important;
+    background: var(--primary-accent) !important;
+    border: none !important;
+    color: var(--text-light) !important;
   }
   .btn-success {
-    background-color: #388e3c !important;
-    border: 1px solid #2e7d32 !important;
+    background: var(--hover-accent) !important;
+    border: none !important;
+    color: var(--text-light) !important;
   }
   .btn-danger {
-    background-color: #d32f2f !important;
-    border: 1px solid #b71c1c !important;
+    background: #b71c1c !important;
+    border: none !important;
+    color: var(--text-light) !important;
   }
+
+  /* Tabla de materiales */
   .table {
-    color: #fff;
-    border-color: #444;
     margin-top: 1rem;
+    color: var(--text-light);
+    border-collapse: collapse;
+    width: 100%;
   }
   .table th, .table td {
-    border: 1px solid #444;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: .75rem;
     text-align: center;
   }
-  .btn-back-home {
-    background-color: #607d8b !important;
-    border-color: #455a64 !important;
-    color: #fff !important;
-    margin-bottom: 20px;
+  .table th {
+    background: var(--primary-accent);
+    color: var(--text-light);
+  }
+  .table tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .dashboard-contentPage {
+      margin-left: 0; width: 100%; padding: 1rem;
+    }
+    .dashboard-banner {
+      left: 0; width: 100%;
+    }
+    .table, .table th, .table td {
+      font-size: .9rem;
+    }
   }
 </style>
 
+<div class="dashboard-banner"></div>
+
 <section class="dashboard-contentPage">
   <div class="container-fluid">
-    <!-- Botón Volver a Mis Sesiones -->
-    <a href="<?php echo SERVERURL;?>sesion/<?php echo $ses['CursoId'];?>/"
+    <a href="<?= SERVERURL;?>sesion/<?= $ses['CursoId']; ?>/"
        class="btn btn-back-home btn-sm">
       <i class="zmdi zmdi-arrow-left"></i> Volver a Sesiones
     </a>
 
     <div class="page-header">
-      <h1 class="text-titles">
-        <i class="zmdi zmdi-collection-text"></i>
-        Material – <?php echo htmlspecialchars($ses['Titulo']); ?>
-      </h1>
+      <h1><i class="zmdi zmdi-collection-text"></i> Material – <?= htmlspecialchars($ses['Titulo']); ?></h1>
     </div>
-    <?php echo $alert; ?>
+    <?php if ($alert): ?>
+      <div class="text-center" style="margin-bottom:1rem; color: var(--primary-accent);">
+        <?= $alert ?>
+      </div>
+    <?php endif; ?>
     <p class="lead">Aquí ves todos los archivos subidos para esta sesión.</p>
   </div>
 
   <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
   <div class="container-fluid">
-    <button class="btn btn-info btn-raised"
+    <button class="btn btn-info btn-sm"
             onclick="document.getElementById('formAdd').style.display='block'">
       <i class="zmdi zmdi-plus"></i> Nuevo Material
     </button>
   </div>
 
   <div class="container-fluid" id="formAdd" style="display:none; margin-top:1rem;">
-    <div class="panel panel-info">
-      <div class="panel-heading">
-        <h3 class="panel-title"><i class="zmdi zmdi-plus-box"></i> Agregar Material</h3>
-      </div>
+    <div class="panel">
+      <div class="panel-heading"><i class="zmdi zmdi-plus-box"></i> Agregar Material</div>
       <div class="panel-body">
         <form method="POST" enctype="multipart/form-data" autocomplete="off">
           <input type="hidden" name="add_material" value="1">
@@ -185,11 +257,11 @@ $materials = $insMaterial->list_materials_controller($sesionId);
               </div>
             </div>
           </div>
-          <p class="text-center">
-            <button type="submit" class="btn btn-success btn-raised">
+          <p class="text-center" style="margin-top:1rem;">
+            <button type="submit" class="btn btn-success btn-sm">
               <i class="zmdi zmdi-floppy"></i> Subir
             </button>
-            <button type="button" class="btn btn-default"
+            <button type="button" class="btn btn-back-home btn-sm"
                     onclick="document.getElementById('formAdd').style.display='none'">
               Cancelar
             </button>
@@ -201,13 +273,11 @@ $materials = $insMaterial->list_materials_controller($sesionId);
   <?php endif; ?>
 
   <div class="container-fluid">
-    <div class="panel panel-success">
-      <div class="panel-heading">
-        <h3 class="panel-title"><i class="zmdi zmdi-folder"></i> Lista de Material</h3>
-      </div>
+    <div class="panel">
+      <div class="panel-heading"><i class="zmdi zmdi-folder"></i> Lista de Material</div>
       <div class="panel-body">
         <div class="table-responsive">
-          <table class="table table-hover">
+          <table class="table">
             <thead>
               <tr>
                 <th>Archivo</th>
@@ -220,7 +290,7 @@ $materials = $insMaterial->list_materials_controller($sesionId);
             <tbody>
               <?php if (empty($materials)): ?>
                 <tr>
-                  <td colspan="<?php echo in_array($_SESSION['userType'], ['Administrador','Docente']) ? 3 : 2; ?>">
+                  <td colspan="<?= in_array($_SESSION['userType'], ['Administrador','Docente']) ? 3 : 2 ?>">
                     No hay material aún.
                   </td>
                 </tr>
@@ -228,17 +298,19 @@ $materials = $insMaterial->list_materials_controller($sesionId);
                 <tr>
                   <td>
                     <i class="zmdi zmdi-folder"></i>
-                    <a href="<?php echo SERVERURL . 'attachments/material/' . $m['Archivo']; ?>"
-                       target="_blank">
-                      <?php echo htmlspecialchars($m['Titulo']); ?>
+                    <a href="<?= SERVERURL . 'attachments/material/' . $m['Archivo'] ?>"
+                       target="_blank"
+                       style="color: var(--text-light); text-decoration: none;">
+                      <?= htmlspecialchars($m['Titulo']) ?>
                     </a>
                   </td>
-                  <td><?php echo date("d/m/Y H:i", strtotime($m['Fecha'])); ?></td>
+                  <td><?= date("d/m/Y H:i", strtotime($m['Fecha'])) ?></td>
                   <?php if (in_array($_SESSION['userType'], ['Administrador','Docente'])): ?>
                   <td>
                     <form method="POST" style="display:inline">
-                      <input type="hidden" name="delete_id" value="<?php echo $m['id']; ?>">
-                      <button type="submit" class="btn btn-danger btn-sm btn-raised"
+                      <input type="hidden" name="delete_id" value="<?= $m['id'] ?>">
+                      <button type="submit"
+                              class="btn btn-danger btn-sm"
                               onclick="return confirm('¿Eliminar este material?');">
                         <i class="zmdi zmdi-delete"></i>
                       </button>
