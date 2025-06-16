@@ -9,85 +9,156 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
 ?>
 
 <style>
+  /* ==== Paleta de colores ==== */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
+  }
+
+  /* Ocultar buscador y menú */
+  .btn-options,
+  .dropdown-toggle,
+  .btn-search,
+  i.zmdi.zmdi-search,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
+  }
+
+  /* Banner de logo como fondo suave */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 270px;
+    width: calc(100% - 270px);
+    height: 100%;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+
   html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
+    margin: 0; padding: 0;
     width: 100%; height: 100%;
+    background: var(--primary-bg);
+    color: var(--text-light);
     overflow-x: hidden;
+    font-family: 'RobotoCondensed', sans-serif;
     box-sizing: border-box;
   }
+
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
-    width: calc(100% - 170px);
+    position: relative; z-index: 1;
+    margin-left: 180px;
+    width: calc(100% - 270px);
+    padding: 30px auto;
+    min-height: 100vh;
     box-sizing: border-box;
-    background-color: #1e1f28;
   }
+
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    margin-bottom: 1rem;
   }
   .lead {
     font-size: 1.1rem;
-    color: #ccc;
-    margin-bottom: 30px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 2rem;
+  }
+
+  /* Breadcrumb transparente */
+  .breadcrumb-tabs {
+    background: transparent !important;
+    padding: 0; margin-bottom: 2rem; border: none;
+    
+  }
+  .breadcrumb-tabs li {
+    display: inline-block; margin-right: .5rem;
   }
   .breadcrumb-tabs .btn {
-    font-weight: bold;
-    color: #fff !important;
-    padding: 8px 16px;
-    border-radius: 4px;
+    background: var(--primary-accent) !important;
+    color:rgb(0, 0, 0);
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    text-decoration: none;
     transition: background .3s;
   }
-  .breadcrumb-tabs .btn-info {
-    background-color: #0288d1 !important;
-    border: 1px solid #0277bd !important;
+  .breadcrumb-tabs .btn:hover {
+    background: var(--hover-accent) !important;
   }
-  .breadcrumb-tabs .btn-success {
-    background-color: #388e3c !important;
-    border: 1px solid #2e7d32 !important;
-  }
-  .breadcrumb-tabs li { margin-right: 10px; }
+
   .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    overflow: hidden;
+    margin-bottom: 2rem;
   }
   .panel-heading {
-    background-color: #00bcd4 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    background: var(--primary-accent) !important;
+    color:rgb(0, 0, 0);
+    padding: .75rem 1rem;
+    text-align: center;
+    font-size: 1.2rem;
   }
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
   }
+
   .form-control, .control-label, textarea {
     background: rgba(255,255,255,0.05) !important;
     border: 1px solid #555 !important;
-    color: #fff !important;
+    color: var(--text-light) !important;
   }
-    fieldset, legend {
+  /* Y aplica el mismo fondo y texto a cada option */
+.form-control option {
+  background: var(--secondary-bg) !important;
+  color: var(--text-light) !important;
+}
+
+/* Opción enfocada */
+.form-control:focus {
+  background: rgba(255,255,255,0.1) !important;
+  color: var(--text-light) !important;
+}
+  fieldset, legend {
     border: none;
-    padding: 0;
-    margin-bottom: 20px;
-    color: #efebeb;
+    margin-bottom: 1rem;
+    color:rgb(10, 1, 1);
+  }
+
+  .btn-info, .btn-success {
+    font-weight: bold;
+    border-radius: .3rem;
+    transition: background .3s;
+
+  }
+  .btn-info {
+    background: var(--primary-accent) !important;
+    border: none !important;
+    color: #000 !important;
+  }
+  .btn-info:hover {
+    background: var(--hover-accent) !important;
   }
 </style>
+
+<div class="dashboard-banner"></div>
 
 <section class="dashboard-contentPage">
   <div class="container-fluid">
     <div class="page-header">
       <h1 class="text-titles">
-        <i class="zmdi zmdi-tv-alt-play zmdi-hc-fw"></i> Clases <small>(Registro)</small>
+        <i class="zmdi zmdi-tv-alt-play zmdi-hc-fw"></i>
+        Clases <small>(Registro)</small>
       </h1>
     </div>
     <p class="lead">
@@ -97,14 +168,14 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
   </div>
 
   <div class="container-fluid">
-    <ul class="breadcrumb breadcrumb-tabs">
+    <ul class="breadcrumb-tabs">
       <li class="active">
-        <a href="<?php echo SERVERURL; ?>class/" class="btn btn-info">
+        <a href="<?= SERVERURL ?>class/" class="btn btn-info">
           <i class="zmdi zmdi-plus"></i> Nueva
         </a>
       </li>
       <li>
-        <a href="<?php echo SERVERURL; ?>classlist/" class="btn btn-success">
+        <a href="<?= SERVERURL ?>classlist/" class="btn btn-info">
           <i class="zmdi zmdi-format-list-bulleted"></i> Lista
         </a>
       </li>
@@ -112,109 +183,121 @@ if (in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])):
   </div>
 
   <div class="container-fluid">
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="panel panel-info">
-          <div class="panel-heading">
-            <h3 class="panel-title"><i class="zmdi zmdi-plus"></i> Nueva clase</h3>
-          </div>
-          <div class="panel-body">
-            <form action="<?php echo SERVERURL; ?>ajax/ajaxVideo.php"
-                  method="POST"
-                  enctype="multipart/form-data"
-                  autocomplete="off"
-                  data-form="AddVideo"
-                  class="ajaxDataForm">
+    <div class="panel">
+      <div class="panel-heading">
+        <i class="zmdi zmdi-plus"></i> Nueva clase
+      </div>
+      <div class="panel-body">
+        <form action="<?= SERVERURL ?>ajax/ajaxVideo.php"
+              method="POST"
+              enctype="multipart/form-data"
+              autocomplete="off"
+              data-form="AddVideo"
+              class="ajaxDataForm">
 
-              <fieldset>
-                <legend><i class="zmdi zmdi-videocam"></i> Datos de la clase</legend>
-                <div class="row">
+          <fieldset>
+            <legend><i class="zmdi zmdi-videocam"></i> Datos de la clase</legend>
+            <div class="row">
 
-                  <div class="col-sm-6">
-                    <div class="form-group label-floating">
-                      <span class="control-label">Curso *</span>
-                      <select name="curso_id" class="form-control" required>
-                        <option value="">Seleccione curso...</option>
-                        <?php foreach($todosCursos as $c): ?>
-                          <option value="<?php echo $c['id']; ?>">
-                            <?php echo htmlspecialchars($c['Nombre']); ?>
-                          </option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6">
-                    <div class="form-group label-floating">
-                      <span class="control-label">Título *</span>
-                      <input class="form-control" type="text" name="title" required>
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6">
-                    <div class="form-group label-floating">
-                      <span class="control-label">Tutor o Docente *</span>
-                      <input class="form-control" type="text" name="teacher" required>
-                    </div>
-                  </div>
-
-                  <div class="col-sm-6">
-                    <div class="form-group label-floating">
-                      <span class="control-label">Fecha *</span>
-                      <input class="form-control" type="date" name="date"
-                             value="<?php echo $dateNow; ?>" required>
-                    </div>
-                  </div>
-
-                  <div class="col-xs-12">
-                    <div class="form-group label-floating">
-                      <label class="control-label">Código del vídeo *</label>
-                      <textarea name="code" class="form-control" rows="3" required></textarea>
-                    </div>
-                  </div>
-
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <span class="control-label">Curso *</span>
+                  <select name="curso_id" class="form-control" required>
+                    <option value="">Seleccione curso...</option>
+                    <?php foreach($todosCursos as $c): ?>
+                      <option value="<?= $c['id']; ?>">
+                        <?= htmlspecialchars($c['Nombre']); ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
                 </div>
-              </fieldset>
+              </div>
 
-              <fieldset>
-                <legend><i class="zmdi zmdi-comment-video"></i> Descripción e información adicional</legend>
-                <div class="row">
-                  <div class="col-xs-12">
-                    <textarea name="description" id="spv-editor" class="form-control"></textarea>
-                  </div>
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <span class="control-label">Título *</span>
+                  <input class="form-control" type="text" name="title" required>
                 </div>
-              </fieldset>
+              </div>
 
-              <fieldset>
-                <legend><i class="zmdi zmdi-attachment"></i> Archivos adjuntos</legend>
-                <div class="form-group">
-                  <input type="file" name="attachments[]" multiple
-                         accept=".jpg,.png,.jpeg,.pdf,.ppt,.pptx,.doc,.docx">
-                  <div class="input-group">
-                    <input type="text" readonly class="form-control"
-                           placeholder="Elija los archivos adjuntos...">
-                    <span class="input-group-btn input-group-sm">
-                      <button type="button" class="btn btn-fab btn-fab-mini">
-                        <i class="zmdi zmdi-attachment-alt"></i>
-                      </button>
-                    </span>
-                  </div>
-                  <small>
-                    Tamaño máximo 5MB. Permitidos PNG, JPG, PDF, WORD y PPT.
-                  </small>
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <span class="control-label">Tutor o Docente *</span>
+                  <input class="form-control" type="text" name="teacher" required>
                 </div>
-              </fieldset>
+              </div>
 
-              <p class="text-center">
-                <button type="submit" class="btn btn-info btn-raised btn-sm">
-                  <i class="zmdi zmdi-floppy"></i> Guardar
-                </button>
-              </p>
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <span class="control-label">Fecha *</span>
+                  <input class="form-control" type="date" name="date"
+                         value="<?= $dateNow; ?>" required>
+                </div>
+              </div>
 
-              <div class="form-process full-box"></div>
-            </form>
-          </div>
-        </div>
+              <div class="col-xs-12">
+                <div class="form-group label-floating">
+                  <label class="control-label">Código del vídeo *</label>
+                  <textarea name="code" class="form-control" rows="3" required></textarea>
+                </div>
+              </div>
+
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><i class="zmdi zmdi-comment-video"></i> Descripción e información adicional</legend>
+            <div class="row">
+              <div class="col-xs-12">
+                <textarea name="description" id="spv-editor" class="form-control"></textarea>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><i class="zmdi zmdi-attachment"></i> Archivos adjuntos</legend>
+            <div class="form-group">
+              <!-- input oculto -->
+              <input 
+                type="file" 
+                id="attachments" 
+                name="attachments[]" 
+                multiple 
+                accept=".jpg,.png,.jpeg,.pdf,.ppt,.pptx,.doc,.docx"
+                style="display:none;"
+              >
+              <!-- botón visible -->
+              <button 
+                type="button" 
+                class="btn btn-info btn-raised btn-sm"
+                onclick="document.getElementById('attachments').click()"
+              >
+                <i class="zmdi zmdi-attachment-alt"></i> Añadir archivo
+              </button>
+              <!-- lista de nombres -->
+              <div id="attachment-names" style="margin-top:.75rem; color:rgb(12, 0, 0);"></div>
+              <small class="form-text text-muted">
+                Tamaño máximo 5MB. Permitidos PNG, JPG, PDF, WORD y PPT.
+              </small>
+            </div>
+          </fieldset>
+
+          <script>
+          // Cuando el usuario seleccione archivos, mostramos sus nombres
+          document.getElementById('attachments').addEventListener('change', function(){
+            const list = Array.from(this.files).map(f => f.name).join(', ');
+            document.getElementById('attachment-names').textContent = list;
+          });
+          </script>
+
+          <p class="text-center">
+            <button type="submit" class="btn btn-info btn-raised">
+              <i class="zmdi zmdi-floppy"></i> Guardar
+            </button>
+          </p>
+
+          <div class="form-process full-box"></div>
+        </form>
       </div>
     </div>
   </div>

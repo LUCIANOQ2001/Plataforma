@@ -5,192 +5,226 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!isset($_SESSION['userType']) || $_SESSION['userType'] !== 'Estudiante') {
+if (empty($_SESSION['userType']) || $_SESSION['userType'] !== 'Estudiante') {
     echo (new loginController())->login_session_force_destroy_controller();
     exit;
 }
 
+// 2) Controladores necesarios
+require_once __DIR__ . '/../../controllers/sesionController.php';
 require_once __DIR__ . '/../../controllers/evaluacionController.php';
-$ec = new evaluacionController();
 
-// 2) Extraer IDs de URL: /evaluacion/{sesionId}/estudiante/{evaluacionId}/
-$parts = explode('/', trim($_GET['views'], '/'));
+$insSesion     = new sesionController();
+$insEvaluacion = new evaluacionController();
+$userCode      = $_SESSION['userKey'] ?? $_SESSION['userCode'] ?? '';
+
+// 3) IDs de URL: /evaluacion-student-resolver/{sesionId}/{evaluacionId}/
+$parts        = explode('/', trim($_GET['views'], '/'));
 $sesionId     = intval($parts[1] ?? 0);
-$evaluacionId = intval($parts[3] ?? 0);
+$evaluacionId = intval($parts[2] ?? 0);
 
-// 3) Obtener datos de la evaluación
-$evaluacion = $ec->get_evaluacion($evaluacionId);
-if (!$evaluacion) {
-    echo '<div class="alert alert-danger text-center">Evaluación no encontrada.</div>';
-    return;
+// 4) Obtener datos de la sesión
+$sesRes = $insSesion->get_sesion_by_id_controller($sesionId);
+if (!$sesRes || ($sesRes instanceof PDOStatement && $sesRes->rowCount() === 0)) {
+    echo '<div style="padding:20px; color:#fff; background:#c00;">Sesión no encontrada.</div>';
+    exit;
 }
+$sesion = ($sesRes instanceof PDOStatement) ? $sesRes->fetch(PDO::FETCH_ASSOC) : $sesRes;
 
-// 4) Verificar fechas: inicio y cierre
-$ahora        = new DateTime();
-$fechaInicio  = DateTime::createFromFormat('Y-m-d H:i:s', $evaluacion['FechaInicio']);
-$fechaCierre  = DateTime::createFromFormat('Y-m-d H:i:s', $evaluacion['FechaCierre']);
-
-if ($ahora < $fechaInicio) {
-    echo '<div class="alert alert-info text-center">Esta evaluación comenzará el '
-         . $fechaInicio->format('d/m/Y H:i') . '.</div>';
-    return;
+// 5) Obtener datos de la evaluación
+$evRes = $insEvaluacion->get_evaluacion_by_id_controller($evaluacionId);
+if (!$evRes || ($evRes instanceof PDOStatement && $evRes->rowCount() === 0)) {
+    echo '<div style="padding:20px; color:#fff; background:#c00;">Evaluación no encontrada.</div>';
+    exit;
 }
-if ($ahora > $fechaCierre) {
-    echo '<div class="alert alert-warning text-center">El tiempo para esta evaluación ha finalizado.</div>';
-    return;
-}
+$evaluacion = ($evRes instanceof PDOStatement) ? $evRes->fetch(PDO::FETCH_ASSOC) : $evRes;
 
-// 5) Contar intentos realizados por el estudiante
-$estudianteCodigo = $_SESSION['userCode'] ?? $_SESSION['userKey'];
-$intentosHechos   = $ec->count_resultados_by_evaluacion_estudiante($evaluacionId, $estudianteCodigo);
-$maxIntentos      = intval($evaluacion['IntentosPermitidos'] ?? 1);
+// 6) Conexión para guardar respuestas y resultados
+$pdo = new PDO(
+    'mysql:host=127.0.0.1;dbname=plataformavirtual;charset=utf8',
+    'root',
+    '',
+    [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+);
 
-if ($intentosHechos >= $maxIntentos) {
-    echo '<div class="alert alert-warning text-center">Has agotado tus ' 
-         . $maxIntentos . ' intentos para esta evaluación.</div>';
-    return;
-}
-
-// 6) Procesar envío de respuestas si es POST
-$alert = '';
+// 7) Si llega POST, procesar envío (único intento)
+$notaFinal = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $alert = $ec->submit_respuestas_controller($evaluacionId, $estudianteCodigo, $_POST);
-    // Después de enviar, ya no mostrar el formulario
+    $pregs   = $insEvaluacion->list_preguntas_by_evaluacion_controller($evaluacionId);
+    $total   = count($pregs);
+    $aciertos = 0;
+    $pdo->beginTransaction();
+    try {
+        foreach ($pregs as $p) {
+            $pid   = intval($p['id']);
+            $campo = 'respuesta_' . $pid;
+            if (!empty($_POST[$campo])) {
+                $oid = intval($_POST[$campo]);
+                // Guardar respuesta
+                $insStmt = $pdo->prepare(
+                    "INSERT INTO respuesta_estudiante
+                     (EvaluacionId, EstudianteCodigo, PreguntaId, OpcionElegidaId, Fecha)
+                     VALUES (?, ?, ?, ?, NOW())"
+                );
+                $insStmt->execute([$evaluacionId, $userCode, $pid, $oid]);
+                // Verificar si correcta
+                $chk = $pdo->prepare("SELECT EsCorrecta FROM opcion WHERE id = ?");
+                $chk->execute([$oid]);
+                if (intval($chk->fetchColumn()) === 1) {
+                    $aciertos++;
+                }
+            }
+        }
+        // Calcular nota en porcentaje
+        $notaFinal = ($total > 0) ? round(($aciertos / $total) * 100, 2) : 0;
+        // Insertar resultado
+        $insRes = $pdo->prepare(
+            "INSERT INTO resultado (EvaluacionId, EstudianteCodigo, Nota, Fecha)
+             VALUES (?, ?, ?, NOW())"
+        );
+        $insRes->execute([$evaluacionId, $userCode, $notaFinal]);
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        $notaFinal = 'Error al guardar.';
+    }
 }
 
-// 7) Si ya envió en este intento, mostrar alerta y no el formulario
+// 8) Listar preguntas para formulario o mostrar resultado
+$preguntas = $insEvaluacion->list_preguntas_by_evaluacion_controller($evaluacionId);
 ?>
-<style>
-  html, body {
-    margin: 0; padding: 0;
-    background-color: #1e1f28;
-    color: #fff;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-    box-sizing: border-box;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title><?= htmlspecialchars($evaluacion['Titulo']) ?></title>
+  <style>
+    /* 1) Oculta todo el layout de fondo (sidebar, header, etc.) */
+    body > *:not(.dashboard-contentPage) {
+      display: none !important;
+    }
+    .dashboard-contentPage {
+      margin: 0; padding: 20px;
+      width: 100%; box-sizing: border-box;
+      background: #2B2B2B; color: #FFF;
+      font-family: 'RobotoCondensed',sans-serif;
+    }
+     /* ocultar buscador y menú */
+  .btn-search,
+  i.zmdi.zmdi-search,
+  .btn-options,
+  .dropdown-toggle,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
   }
-  .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
-    background-color: #1e1f28;
-    min-height: 100vh;
-    box-sizing: border-box;
-  }
-  .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
-  }
-  .lead {
-    font-size: 1.1rem;
-    color: #ccc;
-    margin-bottom: 20px;
-  }
-  .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
-    color: #fff;
-    margin-bottom: 20px;
-  }
-  .panel-heading {
-    background: #00bcd4 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
-    text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-  }
-  .panel-body {
-    padding: 20px;
-  }
-  .form-control {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid #555;
-    color: #fff;
-  }
-  .btn-submit {
-    background-color: #43a047;
-    border-color: #388e3c;
-    color: #fff;
-  }
-  .btn-submit:hover {
-    background-color: #4caf50;
-  }
-  .alert {
-    width: 80%;
-    margin: 20px auto;
-  }
-</style>
-
-<section class="dashboard-contentPage">
-  <div class="container-fluid">
-    <div class="page-header">
-      <h1 class="text-titles">
-        <i class="zmdi zmdi-assignment"></i>
-        <?php echo htmlspecialchars($evaluacion['Titulo']); ?>
-        <small>(Intento <?php echo ($intentosHechos + 1) . ' de ' . $maxIntentos; ?>)</small>
-      </h1>
+    /* 2) Estilos de tu formulario/resultado */
+    .panel {
+      background: rgba(174,12,12,0.61);
+      border: 1px solid #D1B16E;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .panel h2 {
+      margin: 0 0 1rem;
+      color: #D1B16E;
+      text-align: center;
+    }
+    .panel p {
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+    .question {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+    }
+    .question h3 {
+      margin: 0 0 .5rem;
+      color: #D1B16E;
+    }
+    .option {
+      margin: 0.5rem 0;
+      padding-left: 1rem;
+      position: relative;
+    }
+    .option:before {
+      content: "•";
+      position: absolute;
+      left: 0; color: #D1B16E;
+    }
+    .resultado {
+      font-size: 1.2rem;
+      margin: 1rem 0;
+      text-align: center;
+    }
+    .aprobado {
+      color: #4CAF50;
+    }
+    .desaprobado {
+      color: #FF5722;
+    }
+    .btn-submit {
+      display: block;
+      margin: 1.5rem auto 0;
+      padding: .6rem 1.2rem;
+      background: #D1B16E;
+      border: none;
+      border-radius: .3rem;
+      color: #2B2B2B;
+      cursor: pointer;
+    }
+    .btn-submit:hover {
+      background: rgba(209,177,110,0.8);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-contentPage">
+    <div class="panel">
+      <h2><?= htmlspecialchars($evaluacion['Titulo']) ?></h2>
+      <p>Tiempo límite: <?= intval($evaluacion['DuracionMinutos']) ?> minutos</p>
+      <p>
+        Abre: <?= date('d/m/Y H:i', strtotime($evaluacion['FechaInicio'])) ?> |
+        Cierra: <?= date('d/m/Y H:i', strtotime($evaluacion['FechaCierre'])) ?>
+      </p>
     </div>
-    <p class="lead">
-      Inicia: <?php echo $fechaInicio->format('d/m/Y H:i'); ?> |
-      Cierra: <?php echo $fechaCierre->format('d/m/Y H:i'); ?> |
-      Duración: <?php echo intval($evaluacion['DuracionMinutos']); ?> minutos
-    </p>
 
-    <?php echo $alert; ?>
-
-    <?php if ($_SERVER['REQUEST_METHOD'] !== 'POST'): ?>
-      <?php
-        // 8) Listar preguntas y opciones
-        $preguntas = $ec->get_preguntas_by_evaluacion($evaluacionId);
-      ?>
-      <?php if (empty($preguntas)): ?>
-        <div class="alert alert-info text-center">No hay preguntas para esta evaluación.</div>
-      <?php else: ?>
-        <form method="POST" autocomplete="off">
-          <?php foreach ($preguntas as $idx => $preg): 
-              $pregId = intval($preg['id']);
-              $opciones = $ec->get_opciones_by_pregunta($pregId);
-          ?>
-            <div class="panel">
-              <div class="panel-heading">
-                Pregunta <?php echo ($idx + 1); ?>:
+    <?php if ($notaFinal !== null): ?>
+      <?php $ap = is_numeric($notaFinal) && $notaFinal >= 11; ?>
+      <p class="resultado <?= $ap ? 'aprobado' : 'desaprobado' ?>">
+        Tu nota: <?= is_numeric($notaFinal) ? $notaFinal.'%' : htmlspecialchars($notaFinal) ?>
+        / <?= $ap ? 'Aprobado' : 'Desaprobado' ?>
+      </p>
+      <button class="btn-submit"
+              onclick="window.opener.location.reload(); window.close();">
+        Cerrar
+      </button>
+    <?php else: ?>
+      <form method="POST">
+        <?php foreach ($preguntas as $i => $p): ?>
+          <div class="panel question">
+            <h3>Pregunta <?= $i+1 ?>:</h3>
+            <p><?= nl2br(htmlspecialchars($p['TextoPregunta'])) ?></p>
+            <?php $opts = $insEvaluacion->list_opciones_by_pregunta_controller((int)$p['id']); ?>
+            <?php foreach ($opts as $opt): ?>
+              <div class="option">
+                <label>
+                  <input type="radio"
+                         name="respuesta_<?= intval($p['id']) ?>"
+                         value="<?= intval($opt['id']) ?>"
+                         required>
+                  <?= htmlspecialchars($opt['TextoOpcion']) ?>
+                </label>
               </div>
-              <div class="panel-body">
-                <p><?php echo nl2br(htmlspecialchars($preg['TextoPregunta'])); ?></p>
-                <?php if (empty($opciones)): ?>
-                  <p class="text-warning">No hay opciones para esta pregunta.</p>
-                <?php else: ?>
-                  <?php foreach ($opciones as $j => $op): ?>
-                    <div class="form-group">
-                      <label>
-                        <input 
-                          type="radio" 
-                          name="resp_<?php echo $pregId; ?>" 
-                          value="<?php echo intval($op['id']); ?>" 
-                          required>
-                        <?php echo htmlspecialchars($op['TextoOpcion']); ?>
-                      </label>
-                    </div>
-                  <?php endforeach; ?>
-                <?php endif; ?>
-              </div>
-            </div>
-          <?php endforeach; ?>
-
-          <p class="text-center">
-            <button type="submit" class="btn btn-submit btn-raised btn-lg">
-              <i class="zmdi zmdi-check"></i> Enviar respuestas
-            </button>
-          </p>
-        </form>
-      <?php endif; ?>
+            <?php endforeach; ?>
+          </div>
+        <?php endforeach; ?>
+        <button type="submit" class="btn-submit">Enviar Evaluación</button>
+      </form>
     <?php endif; ?>
   </div>
-</section>
+</body>
+</html>

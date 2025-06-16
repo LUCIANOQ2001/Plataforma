@@ -1,8 +1,9 @@
+<!-- views/teacher-studentlist-view.php -->
 <?php
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])) {
+if ($_SESSION['userType'] !== 'Docente') {
     header("Location: " . SERVERURL . "login/");
     exit;
 }
@@ -10,12 +11,7 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente'])) {
 require_once "./controllers/studentController.php";
 $insStudent = new studentController();
 
-// Si vienen POST de eliminación
-if (isset($_POST['studentCode'])) {
-    echo $insStudent->delete_student_controller($_POST['studentCode']);
-}
-
-// Determinar página actual, clamp a 1 mínimo
+// Determinar página actual
 $parts = explode("/", $_GET['views']);
 $page  = isset($parts[1]) && intval($parts[1]) > 0
          ? intval($parts[1])
@@ -195,48 +191,30 @@ $page  = isset($parts[1]) && intval($parts[1]) > 0
     <div class="page-header">
       <h1 class="text-titles">
         <i class="zmdi zmdi-face zmdi-hc-fw"></i>
-        Usuarios <small>(Estudiantes)</small>
+        Mis Estudiantes
       </h1>
     </div>
     <p class="lead">
-      Aquí está el listado de todos los estudiantes; puedes eliminar alguno.
+      Listado de estudiantes matriculados en tus cursos.
     </p>
   </div>
 
   <div class="container-fluid">
     <ul class="breadcrumb-tabs">
-      <?php if($_SESSION['userType'] === "Administrador"): ?>
-        <li class="active">
-          <a href="<?= SERVERURL ?>student/" class="btn">
-            <i class="zmdi zmdi-plus"></i> Nuevo
-          </a>
-        </li>
-        <li>
-          <a href="<?= SERVERURL ?>studentlist/" class="btn">
-            <i class="zmdi zmdi-format-list-bulleted"></i> Lista
-          </a>
-        </li>
-      <?php else: ?>
-        <li class="active">
-          <a href="<?= SERVERURL ?>studentlist/" class="btn">
-            <i class="zmdi zmdi-format-list-bulleted"></i> Lista de Estudiantes
-          </a>
-        </li>
-      <?php endif; ?>
+      <li class="active">
+        <a href="<?= SERVERURL ?>teacher-students/" class="btn">
+          <i class="zmdi zmdi-format-list-bulleted"></i> Lista
+        </a>
+      </li>
     </ul>
   </div>
 
   <div class="container-fluid">
     <div class="panel">
-      <div class="panel-heading">
-        Lista de Estudiantes
-      </div>
+      <div class="panel-heading">Mis Estudiantes</div>
       <div class="panel-body">
         <div class="table-responsive">
-          <?php
-            // Imprime la tabla y la paginación
-            echo $insStudent->pagination_student_controller($page, 10);
-          ?>
+          <?= $insStudent->student_list_for_role_controller($page, 10); ?>
         </div>
       </div>
     </div>

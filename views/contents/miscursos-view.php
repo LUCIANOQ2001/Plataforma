@@ -160,6 +160,12 @@ if ($userType === 'Estudiante') {
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     z-index: 10;
   }
+  .course-dates {
+  font-size: 0.95rem;
+  color: rgb(0, 0, 0);
+  margin-top: 0.5rem;
+}
+
   .course-dropdown a {
     display: block;
     padding: .75rem 1rem;
@@ -223,15 +229,24 @@ if ($userType === 'Estudiante') {
     <?php else: ?>
       <div class="courses-grid">
         <?php foreach ($cursos as $c): ?>
-          <div class="course-card">
-            <div class="course-header"
-                 style="background-image:url('<?= SERVERURL ?>views/assets/img/cursito.jpg')">
+        <div class="course-card">
+          <div class="course-header"
+              style="background-image:url('<?= SERVERURL ?>views/assets/img/cursito.jpg')">
+          </div>
+          <div class="course-body">
+            <div class="course-title"><?= htmlspecialchars($c['Nombre']) ?></div>
+            <div class="course-subtitle"><?= htmlspecialchars($c['Descripcion']) ?></div>
+            <div class="course-dates">
+              <small>
+                <strong>Inicio:</strong>
+                <?= date('d/m/Y', strtotime($c['FechaInicio'])) ?>
+                &nbsp;|&nbsp;
+                <strong>Fin:</strong>
+                <?= date('d/m/Y', strtotime($c['FechaFin'])) ?>
+              </small>
             </div>
-            <div class="course-body">
-              <div class="course-title"><?= htmlspecialchars($c['Nombre']) ?></div>
-              <div class="course-subtitle"><?= htmlspecialchars($c['Descripcion']) ?></div>
-            </div>
-            <div class="course-dropdown">
+          </div>
+          <div class="course-dropdown">
               <a href="<?= SERVERURL ?>sesion/<?= $c['id'] ?>/">
                 <i class="zmdi zmdi-time-restore"></i> Sesiones
               </a>

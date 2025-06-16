@@ -2,198 +2,241 @@
 <!-- teacherinfo-view.php -->
 
 <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
+  /* === Paleta de colores compartida === */
+  :root {
+    --primary-bg:       #2B2B2B;
+    --primary-accent:   #D1B16E;
+    --secondary-bg:     rgba(174,12,12,0.61);
+    --text-light:       #FFFFFF;
+    --hover-accent:     rgba(209,177,110,0.2);
+  }
+
+  /* Ocultar íconos de búsqueda y menú */
+  .btn-options,
+  .dropdown-toggle,
+  .btn-search,
+  i.zmdi.zmdi-search,
+  .zmdi-more-vert,
+  .btn-menu-dashboard {
+    display: none !important;
+  }
+
+  /* Banner de logo sutil de fondo */
+  .dashboard-banner {
+    position: fixed;
+    top: 0; left: 270px;
+    width: calc(100% - 270px);
     height: 100%;
-    background-color: #1e1f28;
-    color: #fff;
+    background: url('<?= SERVERURL ?>views/assets/img/LOGO_CIP.png') center/60% no-repeat;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--primary-bg);
+    color: var(--text-light);
     overflow-x: hidden;
+    font-family: 'RobotoCondensed', sans-serif;
     box-sizing: border-box;
   }
 
-  .container-fluid, .panel, .panel-heading, .panel-body, .form-control {
-    background: transparent !important;
-    color: #fff !important;
-  }
-
   .dashboard-contentPage {
-    margin-left: 170px;
-    padding: 30px;
-    width: calc(100% - 170px);
+    position: relative;
+    z-index: 1;
+    margin-left: 180px;
+    width: calc(100% - 270px);
+    padding: 30px auto;
     min-height: 100vh;
-    background-color: #1e1f28;
+    box-sizing: border-box;
   }
 
   .page-header h1 {
-    font-size: 28px;
-    color: #00e5ff;
-    text-shadow: 1px 1px 6px #000;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    color: var(--primary-accent);
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
   }
-
   .lead {
     font-size: 1.1rem;
-    color: #ccc;
-    margin-bottom: 30px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 2rem;
+  }
+  legend {
+    font-size: 1.2rem;
+    color:rgb(0, 0, 0);
+    margin-bottom: 1rem;
+  }
+  .btn-back-home {
+    background: var(--primary-accent) !important;
+    color: var(--text-light) !important;
+    border: none !important;
+    border-radius: .3rem;
+    padding: .5rem 1rem;
+    font-size: .9rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: background .3s;
+  }
+  .btn-back-home:hover {
+    background: var(--hover-accent) !important;
+    color: var(--text-light) !important;
   }
 
   .panel {
-    background: #2c2d3f;
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-    border: 1px solid #3c3d4f;
+    background: var(--secondary-bg);
+    border: 1px solid var(--primary-accent);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
   }
-
   .panel-heading {
-    background: #43a047 !important;
-    color: #fff;
-    font-weight: bold;
-    font-size: 17px;
+    background: var(--primary-accent) !important;
+    color: #2B2B2B;
+    font-size: 1.2rem;
+    padding: .75rem 1rem;
     text-align: center;
-    padding: 12px 15px;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
   }
-
   .panel-body {
-    padding: 20px;
+    padding: 1.5rem;
+    color:#2B2B2B;
   }
 
-  .form-group.label-floating label {
-    color: #ccc;
+  .form-group label.control-label {
+    color: rgb(0, 0, 0) !important;
   }
-
   .form-control {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid #555;
-    color: #fff;
+    background: rgba(255,255,255,0.1) !important;
+    border: 1px solid #555 !important;
+    color: var(--text-light) !important;
   }
 
-  .btn-success {
-    background-color: #388e3c;
-    border: 1px solid #2e7d32;
-    color: #fff;
-  }
-
+  .btn-success,
   .btn-info {
-    background-color: #0288d1;
-    border: 1px solid #0277bd;
-    color: #fff;
+    font-weight: bold;
+    border-radius: .3rem;
+    transition: background .3s;
   }
-
-  .btn:hover {
-    opacity: 0.9;
+  .btn-success {
+    background: var(--hover-accent) !important;
+    border: 1px solid var(--primary-accent) !important;
+    color: var(--text-light) !important;
+  }
+  .btn-success:hover {
+    background: var(--primary-accent) !important;
+  }
+  .btn-info {
+    background: var(--primary-accent) !important;
+    border: 1px solid var(--primary-accent) !important;
+    color: var(--text-light) !important;
+  }
+  .btn-info:hover {
+    background: var(--hover-accent) !important;
   }
 </style>
+
+<div class="dashboard-banner"></div>
 
 <div class="dashboard-contentPage">
   <div class="container-fluid">
     <div class="page-header">
       <h1 class="text-titles">
-        <i class="zmdi zmdi-settings zmdi-hc-fw"></i> Datos del docente
+        <i class="zmdi zmdi-settings zmdi-hc-fw"></i> Datos del Docente
       </h1>
     </div>
     <p class="lead">
-      Bienvenido a la sección de actualización de los datos de los docentes. Aquí podrá actualizar su información personal registrada en el sistema.
+      Bienvenido a la sección de actualización de datos. Aquí podrás actualizar tu información personal.
     </p>
   </div>
 
 <?php 
   require_once "./controllers/docenteController.php";
-
   $insDocente = new docenteController();
 
-  // Si se envió el formulario con el código del docente, lanzamos la actualización
   if(isset($_POST['code'])){
     echo $insDocente->update_docente_controller();
   }
 
-  // El código del docente viene en la URL: /teacherinfo/{codigo}/
-  $code = explode("/", $_GET['views']);
+  $parts = explode("/", trim($_GET['views'], "/"));
+  $code  = $parts[1] ?? '';
 
-  // Obtenemos la fila del docente actual
-  $data = $insDocente->data_docente_controller("Only", $code[1]);
+  $data = $insDocente->data_docente_controller("Only", $code);
   if($data->rowCount() > 0):
     $rows = $data->fetch();
 ?>
   <p class="text-center">
-    <a href="<?php echo SERVERURL; ?>dashboard/" 
-       class="btn btn-info btn-raised btn-sm">
+    <a href="<?= SERVERURL ?>dashboard/" class="btn-back-home">
       <i class="zmdi zmdi-long-arrow-return"></i> Volver
     </a>
   </p>
 
   <div class="container-fluid">
-    <div class="row">
-      <div class="col-xs-12">
-        <div class="panel panel-success">
-          <div class="panel-heading">
-            <h3 class="panel-title">
-              <i class="zmdi zmdi-refresh"></i> Actualizar datos
-            </h3>
-          </div>
-          <div class="panel-body">
-            <form action="" method="POST" enctype="multipart/form-data" autocomplete="off">
-              <fieldset>
-                <legend><i class="zmdi zmdi-account-box"></i> Datos personales</legend><br>
-                <!-- Código oculto para identificar al docente -->
-                <input type="hidden" name="code" value="<?php echo $rows['Codigo']; ?>">
-                <div class="container-fluid">
-                  <div class="row">
-                    <div class="col-xs-12 col-sm-6">
-                      <div class="form-group label-floating">
-                        <label class="control-label">Nombres *</label>
-                        <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}" 
-                               class="form-control" 
-                               type="text" 
-                               name="name" 
-                               value="<?php echo htmlspecialchars($rows['Nombres']); ?>" 
-                               required maxlength="30">
-                      </div>
-                    </div>
-                    <div class="col-xs-12 col-sm-6">
-                      <div class="form-group label-floating">
-                        <label class="control-label">Apellidos *</label>
-                        <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}" 
-                               class="form-control" 
-                               type="text" 
-                               name="lastname" 
-                               value="<?php echo htmlspecialchars($rows['Apellidos']); ?>" 
-                               required maxlength="30">
-                      </div>
-                    </div>
-                    <div class="col-xs-12 col-sm-6">
-                      <div class="form-group label-floating">
-                        <label class="control-label">Email</label>
-                        <input class="form-control" 
-                               type="email" 
-                               name="email" 
-                               value="<?php echo htmlspecialchars($rows['Email']); ?>">
-                      </div>
-                    </div>
-                  </div>
+    <div class="panel">
+      <div class="panel-heading">
+        <h3 class="panel-title">
+          <i class="zmdi zmdi-refresh"></i> Actualizar Datos
+        </h3>
+      </div>
+      <div class="panel-body">
+        <form method="POST" enctype="multipart/form-data" autocomplete="off">
+          <input type="hidden" name="code" value="<?= htmlspecialchars($rows['Codigo']) ?>">
+          <fieldset>
+            <legend><i class="zmdi zmdi-account-box"></i> Datos Personales</legend>
+            <div class="row">
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <label class="control-label">Nombres *</label>
+                  <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}"
+                         class="form-control"
+                         type="text"
+                         name="name"
+                         value="<?= htmlspecialchars($rows['Nombres']) ?>"
+                         required maxlength="30">
                 </div>
-              </fieldset>
-              <p class="text-center">
-                <button type="submit" class="btn btn-success btn-raised btn-sm">
-                  <i class="zmdi zmdi-refresh"></i> Guardar cambios
-                </button>
-              </p>
-            </form>
-          </div>
-        </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <label class="control-label">Apellidos *</label>
+                  <input pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ ]{1,30}"
+                         class="form-control"
+                         type="text"
+                         name="lastname"
+                         value="<?= htmlspecialchars($rows['Apellidos']) ?>"
+                         required maxlength="30">
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <div class="form-group label-floating">
+                  <label class="control-label">Email</label>
+                  <input class="form-control"
+                         type="email"
+                         name="email"
+                         value="<?= htmlspecialchars($rows['Email']) ?>">
+                </div>
+              </div>
+            </div>
+          </fieldset>
+          <p class="text-center" style="margin-top:1rem;">
+            <button type="submit" class="btn-success btn-raised btn-sm">
+              <i class="zmdi zmdi-refresh"></i> Guardar Cambios
+            </button>
+          </p>
+        </form>
       </div>
     </div>
   </div>
 
 <?php else: ?>
-  <p class="lead text-center">Lo sentimos ocurrió un error inesperado</p>
+  <p class="lead text-center">Lo sentimos, ocurrió un error inesperado.</p>
 <?php
   endif;
 else:
-  $logout2 = new loginController();
-  echo $logout2->login_session_force_destroy_controller(); 
+  echo (new loginController())->login_session_force_destroy_controller();
 endif;
 ?>
