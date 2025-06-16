@@ -51,4 +51,46 @@
 			$query->execute();
 			return $query;
 		}
+
+
+    /*----------  Lista de estudiantes por docente (con promedio)  ----------*/
+    public function list_students_by_docente_model(string $docenteCodigo, int $offset = null, int $limit = null){
+        $sql = "
+          SELECT 
+            e.Codigo,
+            CONCAT(e.Apellidos, ', ', e.Nombres) AS NombreCompleto,
+            e.Email,
+            GROUP_CONCAT(DISTINCT c2.Nombre ORDER BY c2.Nombre SEPARATOR ', ') AS Cursos,
+            COALESCE((
+              SELECT ROUND(AVG(ns.Nota),2)
+              FROM nota_sesion ns
+              WHERE ns.EstudianteCodigo = e.Codigo
+                AND ns.CursoId IN (
+                  SELECT id FROM curso WHERE DocenteCodigo = :docenteCodigo
+                )
+            ),0) AS Promedio
+          FROM curso_estudiante ce
+          INNER JOIN curso c 
+            ON ce.CursoId = c.id
+            AND c.DocenteCodigo = :docenteCodigo
+          INNER JOIN estudiante e 
+            ON e.Codigo = ce.EstudianteCodigo
+          LEFT JOIN curso c2 
+            ON c2.id = ce.CursoId
+          GROUP BY e.Codigo, e.Apellidos, e.Nombres, e.Email
+          ORDER BY e.Apellidos, e.Nombres
+        ";
+        if($offset !== null && $limit !== null){
+            $sql .= " LIMIT :offset, :limit";
+        }
+        $stmt = self::connect()->prepare($sql);
+        $stmt->bindParam(':docenteCodigo', $docenteCodigo);
+        if($offset !== null && $limit !== null){
+            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindParam(':limit',  $limit,  PDO::PARAM_INT);
+        }
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 	}

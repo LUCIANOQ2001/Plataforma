@@ -1,6 +1,10 @@
 <?php
+require_once __DIR__ . '/../models/studentModel.php';
+
+
 class studentController {
     private $pdo;
+    private $model;
 
     public function __construct(){
         $this->pdo = new PDO(
@@ -8,7 +12,9 @@ class studentController {
             'root','',
             [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]
         );
+        $this->model = new studentModel();
     }
+
     public function count_estudiantes() {
         $stmt = mainModel::ejecutar_consulta_simple("SELECT COUNT(*) AS total FROM estudiante");
         return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
@@ -218,5 +224,81 @@ class studentController {
             return '<div class="alert alert-danger text-center">Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     }
-    
+    /**
+ * Lista paginada de estudiantes para el docente logueado.
+ */
+  /**
+     * Lista paginada de estudiantes para el docente logueado (con promedio).
+     */
+    public function pagination_students_by_docente_controller(int $page = 1, int $limit = 10): string {
+        $page   = max(1, $page);
+        $offset = ($page - 1) * $limit;
+        $docenteCodigo = $_SESSION['userKey'] ?? '';
+
+        // Total de alumnos para este docente
+        $stmtTotal = $this->pdo->prepare("
+        SELECT COUNT(DISTINCT ce.EstudianteCodigo) AS total
+        FROM curso_estudiante ce
+        INNER JOIN curso c 
+            ON ce.CursoId = c.id
+        WHERE c.DocenteCodigo = ?
+        ");
+        $stmtTotal->execute([$docenteCodigo]);
+        $total = $stmtTotal->fetch(PDO::FETCH_ASSOC)['total'];
+
+        $pages = max(1, ceil($total / $limit));
+
+        // Traer los datos con promedio
+        $students = $this->model
+                         ->list_students_by_docente_model($docenteCodigo, $offset, $limit);
+
+        // Construir la tabla<th>Acciones</th>
+        $html = '<table class="table"><thead><tr>'
+              .'<th>Código</th><th>Nombre completo</th><th>Email</th>'
+              .'<th>Cursos</th><th>Promedio</th> '
+              .'</tr></thead><tbody>';
+        if($students){
+            foreach($students as $r){
+                $html .= '<tr>'
+                       .'<td>'.htmlspecialchars($r['Codigo']).'</td>'
+                       .'<td>'.htmlspecialchars($r['NombreCompleto']).'</td>'
+                       .'<td>'.htmlspecialchars($r['Email']).'</td>'
+                       .'<td>'.htmlspecialchars($r['Cursos']).'</td>'
+                       .'<td>'.htmlspecialchars($r['Promedio']).'</td>'
+                      /* .'<td>
+                          <a href="'.SERVERURL.'studentinfo/'.htmlspecialchars($r['Codigo']).'/" 
+                             class="btn btn-warning btn-xs" title="Editar">
+                            <i class="zmdi zmdi-edit"></i>
+                          </a>
+                         </td>'*/
+                       .'</tr>';
+            }
+        } else {
+            $html .= '<tr><td colspan="6">No hay estudiantes en tus cursos.</td></tr>';
+        }
+        $html .= '</tbody></table>';
+
+        // Paginación
+        $html .= '<nav><ul class="pagination">';
+        for($i = 1; $i <= $pages; $i++){
+            $act = $i === $page ? ' active' : '';
+            $html .= '<li class="page-item'.$act.'">'
+                   .'<a class="page-link" href="'.SERVERURL.'teacher-students/'.$i.'/">'.$i.'</a>'
+                   .'</li>';
+        }
+        $html .= '</ul></nav>';
+
+        return $html;
+    }
+
+    /**
+     * Decide la lista según rol: docente vs. administrador.
+     */
+    public function student_list_for_role_controller(int $page = 1, int $limit = 10): string {
+        if($_SESSION['userType'] === 'Docente'){
+            return $this->pagination_students_by_docente_controller($page, $limit);
+        }
+        return $this->pagination_student_controller($page, $limit);
+    }
+
 }

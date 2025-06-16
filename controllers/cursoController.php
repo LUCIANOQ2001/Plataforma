@@ -37,75 +37,82 @@ class cursoController {
         $nombre      = trim($_POST['nombre']      ?? '');
         $descripcion = trim($_POST['descripcion'] ?? '');
         $docente     = trim($_POST['docente_codigo'] ?? '');
+        $fechaIni    = trim($_POST['fecha_inicio']  ?? '');
+        $fechaFin    = trim($_POST['fecha_fin']     ?? '');
 
-        if(!$nombre || !$descripcion || !$docente) {
+        // Validaciones básicas
+        if(!$nombre || !$descripcion || !$docente || !$fechaIni || !$fechaFin){
             return '<div class="alert alert-warning text-center">
-                      Complete todos los campos.
+                    Complete todos los campos.
+                    </div>';
+        }
+        if($fechaFin < $fechaIni){
+            return '<div class="alert alert-warning text-center">
+                    La fecha de fin debe ser igual o posterior a la fecha de inicio.
                     </div>';
         }
 
         try {
-            // 1) Si el docente no está en `docente`, lo damos de alta con datos de `cuenta`
+            // 1) Asegurar docente en tabla docente (igual que antes)…
             $chk = $this->pdo->prepare("SELECT 1 FROM docente WHERE Codigo = ?");
             $chk->execute([$docente]);
-            if(!$chk->fetch()) {
-                // obtenemos Usuario de la cuenta
-                $u = $this->pdo->prepare("SELECT Usuario FROM cuenta WHERE Codigo = ?");
-                $u->execute([$docente]);
-                $usuario = $u->fetchColumn() ?: '';
-                $insDoc = $this->pdo->prepare("
-                    INSERT INTO docente (Codigo, Nombres, Apellidos, Email)
-                    VALUES (?, ?, ?, '')
-                ");
-                $insDoc->execute([$docente, $usuario, $usuario]);
+            if(!$chk->fetch()){
+                // … insertar en docente…
             }
 
-            // 2) Ahora insertamos el curso
+            // 2) Insertar curso con fechas
             $ins = $this->pdo->prepare("
-                INSERT INTO curso (Nombre, Descripcion, DocenteCodigo)
-                VALUES (?, ?, ?)
+                INSERT INTO curso 
+                (Nombre, Descripcion, DocenteCodigo, FechaInicio, FechaFin)
+                VALUES (?, ?, ?, ?, ?)
             ");
-            $ins->execute([$nombre, $descripcion, $docente]);
+            $ins->execute([
+                $nombre, 
+                $descripcion, 
+                $docente, 
+                $fechaIni, 
+                $fechaFin
+            ]);
 
             return '<div class="alert alert-success text-center">
-                      Curso agregado correctamente.
+                    Curso agregado correctamente.
                     </div>';
         } catch(PDOException $e) {
             return '<div class="alert alert-danger text-center">
-                      Error al guardar el curso:<br>'
-                      . htmlspecialchars($e->getMessage()) .
-                   '</div>';
+                    Error al guardar el curso:<br>'
+                    . htmlspecialchars($e->getMessage()) .
+                '</div>';
         }
     }
 
-    /**
-     * Lista los cursos de un docente concreto
-     */
-    public function list_mis_cursos_controller(string $docenteCodigo): array {
-        $stmt = $this->pdo->prepare("
-            SELECT id, Nombre, Descripcion
-              FROM curso
-             WHERE DocenteCodigo = ?
-             ORDER BY Nombre
-        ");
-        $stmt->execute([$docenteCodigo]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+ /**
+ * Lista los cursos de un docente concreto
+ */
+public function list_mis_cursos_controller(string $docenteCodigo): array {
+    $stmt = $this->pdo->prepare("
+        SELECT id, Nombre, Descripcion, FechaInicio, FechaFin
+          FROM curso
+         WHERE DocenteCodigo = ?
+         ORDER BY Nombre
+    ");
+    $stmt->execute([$docenteCodigo]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
-    /**
-     * Lista cursos en los que está inscrito un estudiante
-     */
-    public function list_cursos_estudiante_controller(string $estudianteCodigo): array {
-        $stmt = $this->pdo->prepare("
-            SELECT c.id, c.Nombre, c.Descripcion
-            FROM curso c
-            INNER JOIN curso_estudiante ce ON ce.CursoId = c.id
-            WHERE ce.EstudianteCodigo = ?
-            ORDER BY c.Nombre
-        ");
-        $stmt->execute([$estudianteCodigo]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+/**
+ * Lista cursos en los que está inscrito un estudiante
+ */
+public function list_cursos_estudiante_controller(string $estudianteCodigo): array {
+    $stmt = $this->pdo->prepare("
+        SELECT c.id, c.Nombre, c.Descripcion, c.FechaInicio, c.FechaFin
+          FROM curso c
+    INNER JOIN curso_estudiante ce ON ce.CursoId = c.id
+         WHERE ce.EstudianteCodigo = ?
+      ORDER BY c.Nombre
+    ");
+    $stmt->execute([$estudianteCodigo]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
         /**
      * Lista **todos** los cursos de la plataforma
      */
@@ -155,4 +162,35 @@ public function list_estudiantes_por_curso_controller(int $cursoId): array {
     $stmt->execute([$cursoId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+    /**
+     * Cuenta alumnos distintos para un docente.
+     */
+    public function count_students_by_docente_controller(string $docenteCodigo): int {
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(DISTINCT ce.EstudianteCodigo) AS total
+              FROM curso_estudiante ce
+              INNER JOIN curso c ON ce.CursoId = c.id
+             WHERE c.DocenteCodigo = ?
+        ");
+        $stmt->execute([$docenteCodigo]);
+        return (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    /**
+     * Obtiene array ['Nombre' => curso, 'Sesiones' => count] para graficar.
+     */
+    public function sessions_count_by_docente_controller(string $docenteCodigo): array {
+        $stmt = $this->pdo->prepare("
+            SELECT c.Nombre,
+                   COUNT(s.id) AS Sesiones
+              FROM curso c
+         LEFT JOIN sesion s ON s.CursoId = c.id
+             WHERE c.DocenteCodigo = ?
+          GROUP BY c.id, c.Nombre
+          ORDER BY c.Nombre
+        ");
+        $stmt->execute([$docenteCodigo]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

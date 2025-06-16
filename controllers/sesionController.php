@@ -24,6 +24,7 @@ class sesionController {
                 CursoId,
                 Titulo,
                 Fecha,
+                FechaFin,
                 Video
               FROM sesion
              WHERE id = ?
@@ -33,7 +34,7 @@ class sesionController {
     }
 
     /**
-     * Lista las sesiones de un curso dado.
+     * Lista las sesiones de un curso dado, con FechaFin.
      */
     public function list_sesiones_controller(int $cursoId): array {
         $stmt = $this->pdo->prepare("
@@ -42,6 +43,7 @@ class sesionController {
                 CursoId,
                 Titulo,
                 Fecha,
+                FechaFin,
                 Video
               FROM sesion
              WHERE CursoId = ?
@@ -52,26 +54,49 @@ class sesionController {
     }
 
     /**
-     * Inserta una nueva sesión para un curso.
+     * Inserta una nueva sesión para un curso, validando FechaFin >= Fecha.
      */
     public function add_sesion_controller(int $cursoId, array $post): string {
-        $titulo = trim($post['titulo'] ?? '');
-        $fecha  = trim($post['fecha']  ?? '');
-        $video  = trim($post['video']  ?? '');
+        $titulo    = trim($post['titulo']     ?? '');
+        $fechaIni  = trim($post['fecha']      ?? '');
+        $fechaFin  = trim($post['fecha_fin']  ?? '');
+        $video     = trim($post['video']      ?? '');
 
-        if (!$titulo || !$fecha) {
+        if (!$titulo || !$fechaIni || !$fechaFin) {
             return '<div class="alert alert-warning text-center">'
-                 . 'Complete título y fecha.</div>';
+                 . 'Complete título, fecha de inicio y fecha de fin.</div>';
+        }
+        if ($fechaFin < $fechaIni) {
+            return '<div class="alert alert-warning text-center">'
+                 . 'La fecha de fin debe ser igual o posterior a la fecha de inicio.</div>';
         }
 
         $stmt = $this->pdo->prepare("
-            INSERT INTO sesion (CursoId, Titulo, Fecha, Video)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO sesion (CursoId, Titulo, Fecha, FechaFin, Video)
+            VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$cursoId, $titulo, $fecha, $video]);
+        $stmt->execute([$cursoId, $titulo, $fechaIni, $fechaFin, $video]);
 
         return '<div class="alert alert-success text-center">'
              . 'Sesión creada correctamente.</div>';
+    }
+    
+    /**
+     * Elimina una sesión por su ID.
+     */
+    public function delete_sesion_controller(int $id): string {
+        try {
+            $del = $this->pdo->prepare("DELETE FROM sesion WHERE id = ?");
+            $del->execute([$id]);
+            return '<div class="alert alert-success text-center">
+                      Sesión eliminada correctamente.
+                    </div>';
+        } catch (PDOException $e) {
+            return '<div class="alert alert-danger text-center">
+                      Error al eliminar sesión:<br>' .
+                      htmlspecialchars($e->getMessage()) .
+                   '</div>';
+        }
     }
 
     // ----- Grabaciones -----
