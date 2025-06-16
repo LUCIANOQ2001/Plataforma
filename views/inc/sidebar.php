@@ -36,7 +36,6 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiant
     font-size: 22px;
     font-weight: bold;
     padding: 20px;
-   
     text-align: center;
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
@@ -142,7 +141,7 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiant
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: #836423;
+    color:rgb(255, 255, 255);
     text-decoration: none;
     font-size: 16px;
     transition: background 0.3s ease-in-out;
@@ -258,18 +257,10 @@ if (!in_array($_SESSION['userType'] ?? '', ['Administrador','Docente','Estudiant
           <i class="zmdi zmdi-face"></i> Estudiantes <i class="zmdi zmdi-caret-down pull-right"></i>
         </a>
         <ul class="submenu list-unstyled full-box">
-          <li><a href="<?= SERVERURL ?>studentlist/">Lista de Estudiantes</a></li>
+          <li><a href="<?= SERVERURL ?>teacher-students/">Lista de Estudiantes</a></li>
         </ul>
       </li>
-      <li>
-        <a href="#!" class="btn-sideBar-SubMenu">
-          <i class="zmdi zmdi-videocam"></i> Clases <i class="zmdi zmdi-caret-down pull-right"></i>
-        </a>
-        <ul class="submenu list-unstyled full-box">
-          <li><a href="<?= SERVERURL ?>class/">Nueva Clase</a></li>
-          <li><a href="<?= SERVERURL ?>classlist/">Lista de Clases</a></li>
-        </ul>
-      </li>
+
       <li>
         <a href="#!" class="btn-sideBar-SubMenu">
           <i class="zmdi zmdi-book"></i> Cursos <i class="zmdi zmdi-caret-down pull-right"></i>
