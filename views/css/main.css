@@ -89,112 +89,6 @@ body, html{
     z-index: 1;
 }
 
-/* Estilos del formulario con efecto vidrio y animación */
-.logInForm {
-    position: relative;
-    width: 90%;
-    max-width: 380px;
-    padding: 30px;
-    border-radius: 15px;
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: 0px 15px 50px rgba(0, 0, 0, 0.3);
-    text-align: center;
-    z-index: 2;
-    animation: fadeIn 0.8s ease-in-out, float 4s infinite ease-in-out;
-}
-
-/* Animación de entrada */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Animación flotante */
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(15px); }
-    100% { transform: translateY(0px); }
-}
-
-/* Texto de la empresa */
-.company-name {
-    font-size: 26px;
-    font-weight: 700;
-    color: #ff9800;
-    text-align: center;
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
-    margin-bottom: 25px;
-}
-
-/* Estilo para las etiquetas */
-.logInForm label {
-    font-size: 18px;
-    font-weight: bold;
-    color: #fff;
-    text-align: left;
-    display: block;
-    margin-bottom: 10px;
-}
-
-/* Estilo de los campos de entrada */
-.input-field {
-    width: 100%;
-    padding: 15px;
-    border: 2px solid rgba(255, 255, 255, 0.6);
-    border-radius: 10px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    background: rgba(255, 255, 255, 0.3);
-    color: #fff;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.input-field:focus {
-    border-color: #ff9800;
-    outline: none;
-    background: rgba(255, 255, 255, 0.45);
-}
-
-/* Botón de login mejorado */
-.btn-login {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #ff9800, #f57c00);
-    color: white;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s ease, transform 0.3s ease;
-    font-size: 18px;
-}
-
-.btn-login:hover {
-    background: linear-gradient(135deg, #f57c00, #e65100);
-    transform: scale(1.05);
-}
-
-/* Media Queries */
-@media (max-width: 768px) {
-    .logInForm {
-        width: 85%;
-        max-width: 320px;
-        padding: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .logInForm {
-        width: 95%;
-        max-width: 280px;
-        padding: 18px;
-    }
-}
-
-
 /* --- Desplaza el contenido para no pisar el sidebar --- */
 .content-wrapper {
   margin-left: 270px;   /* ancho del sidebar */
@@ -1015,3 +909,6 @@ body {
 		padding-left: 0;
 	}
 }
+
+
+
